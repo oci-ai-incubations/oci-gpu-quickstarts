@@ -22,24 +22,24 @@ All details to help you get started with AMD MI355X OCI Bare-Metal GPUs.
 
 ### Hardware Specifications
 
-| Shape Name        | GPU Model     | GPUs/Node | GPU Memory | GPU Memory Total |             CPU           | # of CPUs | System Memory | Local Storage	 | Host NIC | RDMA NICs |
+| Shape Name        | GPU Model     | GPUs/Node | GPU Memory | GPU Memory Total |             CPU           | # of CPUs | System Memory | Local Storage	 | Host NIC | RDMA (ROCe) NICs |
 |-------------------|---------------|-----------|------------|----------------- |---------------------------|-----------|---------------|----------------|----------|-----------|
-| BM.GPU.MI355x.v0.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk – 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| AMD Pensando™ Pollara 400 AI NIC, 8 1x400Gb/s Ethernet (3.2 Tb/s total bandwidth, RoCE + RDMA)
-| BM.GPU.MI355x.v1.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk – 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| Mellanox Technologies MT2910 Family [ConnectX-7], 8 1x400Gb/s NVIDIA CX-7 Ethernet (3.2 Tb/s total bandwidth, RoCE + RDMA)
+| BM.GPU.MI355x.v0.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| AMD Pensando™ AI NIC, 8 1x400Gb/s Ethernet=3.2 Tb/s
+| BM.GPU.MI355x.v1.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| Mellanox ConnectX-7, 8 1x400Gb/s=3.2 Tb/s
 
 See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 
 
 ### Supported OS Images
-Always use Oracle-provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCIDs and version info.
+Always use Oracle-provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCID's and version info.
 
-Use Oracle-provided or approved images for security and supportability.
+Use Oracle-provided or approved images for security and supportability. To build your images using packer use this clone this repo and run these commands [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
 
-| OS Version        | Image OCID PAR Link (ORD example)       | Download/Marketplace Link                                                                        | GPU Driver Version | Build & Dependency Status | 
+| OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | GPU Driver Version | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
-| Oracle Linux 9.3  | `ocid1.image.oc1.iad.aaaaaaaasgnnzqa7os7eljhv72stlgz3r6l64mhfbhxvriwtlvq6ulq75xyq`| [Oracle Linux - GPU Cluster Networking Image OL9.3 (ROCM)](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/134254210) | ROCM 6.3.2, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | NA
-| Ubuntu Linux 24.04  | `ocid1.image.oc1.iad.aaaaaaaasgnnzqa7os7eljhv72stlggghh7j6l64mhfbhxvriwtlvq6ulq75xyq`| NA | ROCM 7.0.2, RCCL 2.26.6, OFED: 28.40.1202, Oracle Cloud Agent 1.54.0+, HPCX 2.22+ | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| Ubuntu Linux 22.04  | `ocid1.image.oc1.iad.aaaaaaaasgnnzqa7os7eljhv72stlgz3r6l64mhfbhxvriwtlvq6ulq75xyq`| NA |  ROCM 6.4, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
+| Oracle Linux 9.5  | `packer init images/OracleLinux-9/Oracle-Linux-9.5-RHCK-DOCA-OFED-3.0.0-AMD-ROCM-700.pkr.hcl \packer build -var-file="defaults.pkr.hcl" images/OracleLinux-9/Oracle-Linux-9.5-RHCK-DOCA-OFED-3.0.0-AMD-ROCM-700.pkr.hcl`| [Oracle Linux - GPU Cluster Networking Image OL9.3 (ROCM)](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/134254210) | ROCM 7.0.2, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | NA
+| Ubuntu Linux 24.04  | `packer init images/Ubuntu-24/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl \packer build -var-file="defaults.pkr.hcl" images/Ubuntu-24/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl`| NA | ROCM 7.0.2, RCCL 2.26.6, OFED: 28.40.1202, Oracle Cloud Agent 1.54.0+, HPCX 2.22+ | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
+| Ubuntu Linux 22.04  | `packer init images/Ubuntu-24/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl \packer build -var-file="defaults.pkr.hcl" images/Ubuntu-24/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl`| NA |  ROCM 6.4, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
 
 ### Getting Started
 
