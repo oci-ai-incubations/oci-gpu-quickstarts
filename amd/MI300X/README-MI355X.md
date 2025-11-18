@@ -11,6 +11,7 @@ This document provides hardware specifications, supported OS images, onboarding 
 3. [AMD Kubernetes GPU Operator](https://github.com/ROCm/gpu-operator)
 
 ### OCI AMD 355X Blogs
+1. [AMD MI355X GA Details](https://www.oracle.com/news/announcement/ai-world-oracle-and-amd-expand-partnership-to-help-customers-achieve-next-generation-ai-scale-2025-10-14/)
 
 ### OCI AMD 355X Technical Docs & Supported Solutions
 

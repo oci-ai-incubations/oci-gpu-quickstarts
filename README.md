@@ -20,9 +20,11 @@ This repository hosts onboarding content for Oracle Cloud Infrastructure GPU off
         [README-GB200.MD](/nvidia/GB200/README-GB200.md)
 /amd
     /MI300X
-        [README-MI300X.MD](/amd/MI300X/README-MI355X.md)
+        [README-MI300X.MD]
     /MI355X
-        [README-MI355X.MD](/amd/MI355X/README-MI355X.md)
+        [README-MI355X.MD]
+        /k8s
+            [EXAMPLE YAMLS]
 ```
 Helper scripts for driver checks, GPU validation, and log collection
 You can add additional GPU families as OCI expands offerings.

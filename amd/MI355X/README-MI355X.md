@@ -76,21 +76,37 @@ docker run -it \
 ```
 ### OKE & Containers Getting Started
 1. Create OKE Cluster via OCI Console or CLI.
-2. Add GPU Node Pool: Choose MI355X shape, use golden OS image.
-3. Install AMD Device Plugin:
+2. Add GPU Node Pool as self managed node: More info [here](https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengworkingwithselfmanagednodes.htm). You can use the same OS Image listed above and bootstrap the kubernetes components and registration to Kubernetes control plane. More abut adding it as [cloud init script here](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/files/oke-ubuntu-cloud-init.sh)
+3. Install AMD Device Plugin on OKE:
 ```bash
 kubectl apply -f https://github.com/AMD/k8s-device-plugin/raw/main/AMD-device-plugin.yml
 ```
 4. Run GPU-powered Kubernetes workloads:
 Example pod resource spec:
-```yaml
-resources:
-  limits:
-    AMD.com/gpu: 1
-```
-5. Verify with Hello World CUDA container pod.
-See detailed instructions in OKE Onboarding Guide .
 
+[AMD RVS Test Yaml](/amd/MI355X/k8s/active-health-checks-rvs.yaml)
+
+5. Verify with Hello World ROCm container pod is deployable and you can see the AMD GPUs within it
+
+```bash
+kubectl create -f ./amd/MI355X/k8s/hello-world-rocm-oke.yaml
+```
+Output
+
+```bash
+kubectl logs amd-smi
+
+AMDSMI Tool: 24.6.2+2b02a07 | AMDSMI Library version: 24.6.2.0 | ROCm version: 7.1.2
+GPU  POWER  GPU_TEMP  MEM_TEMP  GFX_UTIL  GFX_CLOCK  MEM_UTIL  MEM_CLOCK
+  0  126 W     40 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     40 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     43 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     42 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     43 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     66 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     35 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+  0  126 W     45 °C     32 °C       1 %    182 MHz       0 %    900 MHz
+```
 ## Performance 
 
 The section below has the base line numbers achieved and how to reproduce this with MI355X.
