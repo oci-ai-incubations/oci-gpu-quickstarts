@@ -1,4 +1,4 @@
-# OCI GPU Quick Start: AMD MIMI300XX
+# OCI GPU Quick Start: AMD MI300X Instinct GPU
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the AMD MI300X GPU bare-metal shape.
 
 **Docs & technical content coming soon**
@@ -10,10 +10,7 @@ This document provides hardware specifications, supported OS images, onboarding 
 2. [AMD ROcm Software Examples](https://github.com/ROCm/rocm-examples)
 3. [AMD Kubernetes GPU Operator](https://github.com/ROCm/gpu-operator)
 
-### OCI AMD 355X Blogs
-1. [AMD MI355X GA Details](https://www.oracle.com/news/announcement/ai-world-oracle-and-amd-expand-partnership-to-help-customers-achieve-next-generation-ai-scale-2025-10-14/)
-
-### OCI AMD 355X Technical Docs & Supported Solutions
+### OCI AMD 300X Technical Docs & Supported Solutions
 
 1. [OCI GPU Scanner - Cluster Health Management Solution](https://github.com/oracle-quickstart/oci-gpu-scanner)
 2. [OCI HPC SLURM Deployed Terraform Stack](https://github.com/oracle-quickstart/oci-hpc)
