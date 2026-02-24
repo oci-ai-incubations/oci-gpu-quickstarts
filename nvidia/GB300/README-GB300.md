@@ -1,0 +1,1145 @@
+
+# OCI GPU Quick Start: NVIDIA GB300
+This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA GB300 GPU shape.
+
+GB300 is a multi-host NVLink shape.  Unlike some other Nvidia GPU
+systems where NVLink connects GPUs within a single host, with GB300
+NVLink 72 can connect the GPUs on a single rack together (up to 18 hosts
+of 4 GPUs each).  This means that additional OCI constructs as well as
+Linux system level actions [need to be considered](#further-reading--support).  
+
+# Table of Contents
+* [Hardware Specifications](#hardware-specifications)
+* [Recommended Operating Systems](#recommended-operating-systems)
+    * [Recommended Software Version](#recommended-software-version)
+    * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
+    * [Provided Images](#provided-images)
+    * [Hello World Verification](#hello-world-verification)
+* [Performance Benchmarks](#performance-benchmarks)
+    * [NCCL & Model Inference Performance](#nccl--model-inference-performance)
+* [OKE GPU Getting Started](#oke-gpu-getting-started)
+* [Troubleshooting](#troubleshooting)
+* [Further Reading & Support](#further-reading--support)
+
+# Hardware Specifications
+<!-- Old format 
+• 2 NVIDIA Grace ARM (72 Arm Neoverse V2 cores)\
+• 2.1TB DDR5 SDRAM\
+• 4 NVIDIA B300 288GB GPUs\
+• 8 400Gb/s ConnectX-8 (3.2Tb/s total bandwidth, ROCe RDMA) \
+• 2 200Gb/s BF3 (Frontend connection) \
+• 4 NVMe Disks (7TB/disk -- 28TB total)
+-->
+
+| Shape Name        | GPU Model     | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total (GB) | CPU | # of CPUs | System Memory (GB) | Local Storage | Host NIC | RDMA (ROCe) NICs |
+|-------------------|---------------|-----------|------------|----------------- |---------------------------|-----------|---------------|----------------|----------|-----------|
+| BM.GPU.GB300.4 | B300 | 4 | 1152 | 4448 | Arm Neoverse V2 (x2) | 72 (144) | 2062 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 8 x 400 Gbps |
+
+See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
+
+# Recommended Operating Systems
+• Oracle Linux 9+\
+• Ubuntu Linux 24.04+
+
+## Recommended Software Version
+
+• DOCA OFED 3.1.0+\
+• NVIDIA Driver 580.x+\
+• CUDA 13+\
+• NCCL 2.28.7+\
+• HPCX 2.24.1+\
+• Oracle Cloud Agent 1.55.0+
+
+## Custom OS Image Creation with Packer
+
+To build your images using packer clone the OCI HPC Images repo and run the commands found there [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
+
+## Provided Images
+
+| OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
+|-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
+*To Be Added*
+
+## Hello World Verification
+This series of commands can be used to verify image compatability and basic GPU functionality.  SSH into the GPU host and execute:
+
+	docker pull --platform=arm64 nvcr.io/nvidia/pytorch:26.01-py3
+	docker run --gpus 4 nvcr.io/nvidia/pytorch:26.01-py3 bash
+	docker run --gpus all -it --rm --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 nvcr.io/nvidia/pytorch:26.01-py3 bash
+	python3
+	import torch
+
+Then you can paste the following script into the terminal:
+
+```
+if torch.cuda.is_available():
+    num_gpus = torch.cuda.device_count()
+    print(f"Number of available GPUs: {num_gpus}")
+        if num_gpus > 0:
+            print("Available GPU devices:")
+                for i in range(num_gpus):
+                    gpu_name = torch.cuda.get_device_name(i)
+                    print(f"* Device ID {i}: {gpu_name}")
+                    current_device_index = torch.cuda.current_device()
+                    print(f"Current CUDA device index: {current_device_index}")
+                    print(f"Current CUDA device name: {torch.cuda.get_device_name(current_device_index)}")
+```
+
+You should get valid output showing GPUs detected with their device ID and other metadata.
+
+# Performance Benchmarks
+
+NVIDIA publishes their [NCCL](https://developer.nvidia.com/nccl) (Nvidia
+Collective Communication Library) software as a toolkit for
+pre-defined 
+routines which are optimized for their hardware. This software is meant
+to accelerate Artificial Intelligence & 
+Machine Learning workloads running on NVIDIA GPU clusters. Detailed
+documentation can be found
+[here](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html).
+The NCCL operations which are important for this document are AllReduce
+and AlltoAll operations. 
+
+If the NCCL tests are not on your system, then you can build them using
+the commands below
+
+    git clone <https://github.com/NVIDIA/nccl-tests.git>
+    cd nccl-tests
+    make
+
+All tests run as follows with appropriate `--np` and `--hostfile` values
+provided:
+
+```bash
+mpirun --bind-to numa
+        --mca pml ucx
+        --mca coll ^hcoll
+        -x coll_hcoll_enable=0         
+        -x NCCL_DEBUG=WARN
+        -x NCCL_MNNVL_ENABLE=1
+        -x NCCL_CUMEM_ENABLE=1
+        -x UCX_NET_DEVICES=eth0
+        -x NCCL_IB_HCA==mlx5_0,mlx5_1,mlx5_2,mlx5_3,mlx5_5,mlx5_6,mlx5_7,mlx5_8
+        -x NCCL_NET_PLUGIN=/opt/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64/nccl_rdma_sharp_plugin/lib/[libnccl-net.so](http://libnccl-net.so).0
+        -x NCCL_NVLS_ENABLE=1
+        -x NCCL_SOCKET_IFNAME=eth0
+        -x NCCL_IB_GID_INDEX=3
+        -x NCCL_IB_TC=41
+        -x NCCL_IB_SL=0
+        -x NCCL_IB_TIMEOUT=22
+        -x RX_QUEUE_LEN=8192
+        -x IB_RX_QUEUE_LEN=8192
+        -x HCOLL_ENABLE_MCAST_ALL=0
+        -x NCCL_BUFFSIZE=16777216
+        -x NCCL_IB_QPS_PER_CONNECTION=4
+        -x NCCL_IB_SPLIT_DATA_ON_QPS=0
+        -x NCCL_NET_GDR_C2C=1
+        -x NCCL_MNNVLS_ENABLE=1
+        -x NCCL_DMABUF_ENABLE=1
+        --np xxx --hostfile ./yyy all_reduce_perf -b 512K -e 16G -f 2 -g 1 -n 50
+```
+
+## NCCL & Model Inference Performance
+
+* [NCCL All Reduce](#nccl-all-reduce)
+    * [NCCL All Reduce Scale Performance Single Node](#nccl-all-reduce-scale-performance-single-node)
+    * [NCCL All Reduce Scale Performance 2 Nodes on a Single Rack](#nccl-all-reduce-scale-performance-2-nodes-on-a-single-rack)
+    * [NCCL All Reduce Scale Performance Multi-node 1 Rack - 16 nodes](#nccl-all-reduce-scale-performance-multi-node-1-rack---16-nodes)
+    * [NCCL All Reduce Scale Performance Multi-node 2 Racks - 32 nodes](#nccl-all-reduce-scale-performance-multi-node-2-racks---32-nodes)
+* [NCCL All-to-All](#nccl-all-to-all)
+    * [NCCL All-to-All Single Node](#nccl-all-to-all-multi-node)
+    * [NCCL All-to-All Multi-Node](#nccl-all-to-all-scale-performance-2-hosts-single-rack)
+        * [NCCL All to All Scale Performance 2 Hosts Single Rack](#nccl-all-to-all-scale-performance-2-hosts-single-rack)
+        * [NCCL All to All Scale Performance 16 Hosts 1 Rack](#nccl-all-to-all-scale-performance16-hosts-1-rack)
+        * [NCCL All to All Scale Performance 32 Hosts 2 Racks](#nccl-all-to-all-scale-performance-32-hosts-2-racks)
+        * [NCCL All Reduce Scale Performance Single Node](#nccl-all-to-all-single-node)
+* [Model Inference Performance]
+
+### NCCL All Reduce
+
+This is a collective operation which is performing
+reductions on data (for example, sum, min, max) 
+across devices and writing the result in the receive buffers of every
+rank.
+
+#### NCCL All Reduce Scale Performance Single Node
+
+```bash
+# Collective test starting: all_reduce_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 563473 on   GPU-3882 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 563474 on   GPU-3882 device  1 [0009:06:00] NVIDIA GB300
+#  Rank  2 Group  0 Pid 563475 on   GPU-3882 device  2 [0018:06:00] NVIDIA GB300
+#  Rank  3 Group  0 Pid 563478 on   GPU-3882 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288        131072     float     sum      -1    17.93   29.25   43.87      0    17.60   29.79   44.68      0
+     1048576        262144     float     sum      -1    20.21   51.87   77.81      0    19.40   54.05   81.08      0
+     2097152        524288     float     sum      -1    26.71   78.52  117.78      0    26.69   78.57  117.86      0
+     4194304       1048576     float     sum      -1    41.13  101.99  152.98      0    41.12  102.00  152.99      0
+     8388608       2097152     float     sum      -1    48.27  173.78  260.67      0    48.16  174.18  261.27      0
+    16777216       4194304     float     sum      -1    75.41  222.48  333.72      0    74.13  226.32  339.48      0
+    33554432       8388608     float     sum      -1    121.8  275.59  413.39      0    118.9  282.25  423.37      0
+    67108864      16777216     float     sum      -1    179.8  373.19  559.78      0    178.9  375.12  562.68      0
+   134217728      33554432     float     sum      -1    337.4  397.76  596.63      0    337.7  397.50  596.25      0
+   268435456      67108864     float     sum      -1    652.5  411.37  617.05      0    652.3  411.51  617.26      0
+   536870912     134217728     float     sum      -1   1273.7  421.51  632.27      0   1273.8  421.48  632.22      0
+  1073741824     268435456     float     sum      -1   2516.7  426.64  639.96      0   2517.0  426.59  639.88      0
+  2147483648     536870912     float     sum      -1   4899.0  438.35  657.53      0   4898.6  438.39  657.59      0
+  4294967296    1073741824     float     sum      -1   9681.4  443.63  665.45      0   9682.3  443.59  665.38      0
+  8589934592    2147483648     float     sum      -1    18920  454.02  681.03      0    18916  454.10  681.15      0
+ 17179869184    4294967296     float     sum      -1    37610  456.79  685.19      0    37605  456.85  685.27      0
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 446.673
+#
+# Collective test concluded: all_reduce_perf
+```
+
+#### NCCL All Reduce Scale Performance 2 Nodes on a Single Rack
+
+```bash
+# Collective test starting: all_reduce_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 566235 on   GPU-5188 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 566236 on   GPU-5188 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank  6 Group  0 Pid 561674 on    GPU-205 device  2 [0018:06:00] NVIDIA GB300
+#  Rank  7 Group  0 Pid 561675 on    GPU-205 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288        131072     float     sum      -1    30.31   17.30   30.27      0    29.57   17.73   31.02      0
+     1048576        262144     float     sum      -1    30.04   34.91   61.09      0    29.88   35.10   61.42      0
+     2097152        524288     float     sum      -1    34.80   60.26  105.46      0    34.90   60.10  105.17      0
+     4194304       1048576     float     sum      -1    56.01   74.89  131.05      0    55.91   75.02  131.28      0
+     8388608       2097152     float     sum      -1    75.97  110.42  193.24      0    75.67  110.86  194.00      0
+    16777216       4194304     float     sum      -1    106.0  158.22  276.88      0    104.1  161.15  282.02      0
+    33554432       8388608     float     sum      -1    169.4  198.13  346.73      0    167.9  199.89  349.81      0
+    67108864      16777216     float     sum      -1    278.8  240.69  421.21      0    278.8  240.71  421.24      0
+   134217728      33554432     float     sum      -1    393.7  340.94  596.65      0    393.3  341.25  597.20      0
+   268435456      67108864     float     sum      -1    714.8  375.52  657.17      0    715.1  375.36  656.88      0
+   536870912     134217728     float     sum      -1   1338.0  401.25  702.18      0   1338.5  401.09  701.90      0
+  1073741824     268435456     float     sum      -1   2591.8  414.28  724.98      0   2587.7  414.94  726.14      0
+  2147483648     536870912     float     sum      -1   4565.1  470.42  823.23      0   4569.5  469.96  822.43      0
+  4294967296    1073741824     float     sum      -1   9028.8  475.70  832.47      0   9036.8  475.27  831.73      0
+  8589934592    2147483648     float     sum      -1    17930  479.07  838.38      0    17928  479.15  838.50      0
+ 17179869184    4294967296     float     sum      -1    35722  480.93  841.63      0    35702  481.21  842.11      0
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 474.234
+#
+# Collective test concluded: all_reduce_perf
+```
+
+#### NCCL All Reduce Scale Performance Multi-node 1 Rack - 16 nodes
+
+```bash
+# Collective test starting: all_reduce_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 568399 on   GPU-5705 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 568400 on   GPU-5705 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank 62 Group  0 Pid 480831 on   GPU-6569 device  2 [0018:06:00] NVIDIA GB300
+#  Rank 63 Group  0 Pid 480833 on   GPU-6569 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288        131072     float     sum      -1    66.27    7.91   15.57      0    66.30    7.91   15.57      0
+     1048576        262144     float     sum      -1    66.87   15.68   30.87      0    67.01   15.65   30.80      0
+     2097152        524288     float     sum      -1    69.90   30.00   59.06      0    69.98   29.97   59.00      0
+     4194304       1048576     float     sum      -1    74.95   55.96  110.18      0    74.96   55.95  110.16      0
+     8388608       2097152     float     sum      -1    95.01   88.29  173.82      0    94.52   88.75  174.72      0
+    16777216       4194304     float     sum      -1    148.5  112.96  222.39      0    145.1  115.60  227.59      0
+    33554432       8388608     float     sum      -1    218.8  153.37  301.95      0    215.6  155.62  306.38      0
+    67108864      16777216     float     sum      -1    330.7  202.94  399.55      0    329.8  203.51  400.67      0
+   134217728      33554432     float     sum      -1    544.8  246.38  485.05      0    545.5  246.03  484.38      0
+   268435456      67108864     float     sum      -1    905.7  296.39  583.51      0    905.3  296.52  583.77      0
+   536870912     134217728     float     sum      -1   1637.7  327.83  645.41      0   1655.5  324.29  638.45      0
+  1073741824     268435456     float     sum      -1   2843.9  377.56  743.33      0   2842.8  377.70  743.60      0
+  2147483648     536870912     float     sum      -1   5155.8  416.52  820.02      0   5148.1  417.14  821.25      0
+  4294967296    1073741824     float     sum      -1   9770.1  439.60  865.47      0   9763.2  439.91  866.08      0
+  8589934592    2147483648     float     sum      -1    18842  455.88  897.52      0    18790  457.15  900.01      0
+ 17179869184    4294967296     float     sum      -1    36350  472.63  930.48      0    36345  472.69  930.60      0
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 455.539
+#
+# Collective test concluded: all_reduce_perf
+```
+
+#### NCCL All Reduce Scale Performance Multi-node 2 Racks - 32 nodes
+
+```bash
+# Collective test starting: all_reduce_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 571029 on   GPU-5705 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 571030 on   GPU-5705 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank 126 Group  0 Pid 553577 on    GPU-391 device  2 [0018:06:00] NVIDIA GB300
+#  Rank 127 Group  0 Pid 553579 on    GPU-391 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288        131072     float     sum      -1    611.1    0.86    1.70      0    495.4    1.06    2.10      0
+     1048576        262144     float     sum      -1    488.1    2.15    4.26      0    492.7    2.13    4.22      0
+     2097152        524288     float     sum      -1    490.7    4.27    8.48      0    490.0    4.28    8.49      0
+     4194304       1048576     float     sum      -1    484.4    8.66   17.18      0    497.8    8.43   16.72      0
+     8388608       2097152     float     sum      -1    494.5   16.96   33.66      0    495.9   16.92   33.57      0
+    16777216       4194304     float     sum      -1    509.4   32.93   65.35      0    521.4   32.18   63.85      0
+    33554432       8388608     float     sum      -1    533.9   62.85  124.72      0    548.1   61.21  121.47      0
+    67108864      16777216     float     sum      -1    666.3  100.72  199.87      0    655.1  102.44  203.27      0
+   134217728      33554432     float     sum      -1    987.3  135.94  269.75      0   1006.6  133.34  264.59      0
+   268435456      67108864     float     sum      -1   1704.1  157.53  312.59      0   1724.5  155.66  308.89      0
+   536870912     134217728     float     sum      -1   2198.6  244.18  484.55      0   2187.3  245.45  487.06      0
+  1073741824     268435456     float     sum      -1   3758.2  285.71  566.95      0   3772.0  284.66  564.87      0
+  2147483648     536870912     float     sum      -1   6847.7  313.61  622.31      0   6912.0  310.69  616.53      0
+  4294967296    1073741824     float     sum      -1    12925  332.31  659.43      0    12903  332.86  660.51      0
+  8589934592    2147483648     float     sum      -1    24050  357.16  708.75      0    24006  357.83  710.06      0
+ 17179869184    4294967296     float     sum      -1    46170  372.10  738.39      0    46070  372.91  739.99      0
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 300.755
+#
+# Collective test concluded: all_reduce_perf
+```
+### NCCL All-to-All
+
+This is a point-to-point operation which is a merged loop of
+send/recv operations to/from all peers.
+
+#### NCCL All-to-All Single Node
+
+```bash
+# Collective test starting: alltoall_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 568623 on   GPU-3882 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 568624 on   GPU-3882 device  1 [0009:06:00] NVIDIA GB300
+#  Rank  2 Group  0 Pid 568625 on   GPU-3882 device  2 [0018:06:00] NVIDIA GB300
+#  Rank  3 Group  0 Pid 568628 on   GPU-3882 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288         32768     float    none      -1    14.50   36.15   27.11      0    13.74   38.15   28.61    N/A
+     1048576         65536     float    none      -1    16.76   62.56   46.92      0    16.53   63.44   47.58    N/A
+     2097152        131072     float    none      -1    23.89   87.79   65.84      0    23.88   87.82   65.87    N/A
+     4194304        262144     float    none      -1    23.03  182.12  136.59      0    22.95  182.78  137.09    N/A
+     8388608        524288     float    none      -1    32.00  262.11  196.58      0    31.45  266.73  200.05    N/A
+    16777216       1048576     float    none      -1    46.81  358.40  268.80      0    46.56  360.35  270.27    N/A
+    33554432       2097152     float    none      -1    72.99  459.70  344.77      0    71.82  467.19  350.39    N/A
+    67108864       4194304     float    none      -1    121.3  553.04  414.78      0    121.9  550.68  413.01    N/A
+   134217728       8388608     float    none      -1    218.9  613.08  459.81      0    217.8  616.24  462.18    N/A
+   268435456      16777216     float    none      -1    410.1  654.57  490.93      0    405.7  661.63  496.22    N/A
+   536870912      33554432     float    none      -1    787.1  682.10  511.57      0    778.6  689.54  517.16    N/A
+  1073741824      67108864     float    none      -1   1454.3  738.34  553.75      0   1487.2  722.00  541.50    N/A
+  2147483648     134217728     float    none      -1   2622.9  818.74  614.05      0   2463.7  871.64  653.73    N/A
+  4294967296     268435456     float    none      -1   5183.9  828.51  621.39      0   4850.7  885.43  664.07    N/A
+  8589934592     536870912     float    none      -1    10308  833.31  624.98      0   9568.2  897.76  673.32    N/A
+ 17179869184    1073741824     float    none      -1    20527  836.92  627.69      0    18929  907.60  680.70    N/A
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 381.478
+#
+# Collective test concluded: alltoall_perf
+```
+#### NCCL All-to-All Multi-Node
+
+This section contains multi node performance results.
+
+##### NCCL All to All Scale Performance 2 Hosts Single Rack
+
+```bash
+# Collective test starting: alltoall_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 583233 on   GPU-5188 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 583234 on   GPU-5188 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank  6 Group  0 Pid 577389 on    GPU-205 device  2 [0018:06:00] NVIDIA GB300
+#  Rank  7 Group  0 Pid 577390 on    GPU-205 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288         16384     float    none      -1    15.25   34.38   30.08      0    14.11   37.17   32.52    N/A
+     1048576         32768     float    none      -1    17.39   60.29   52.76      0    17.04   61.53   53.84    N/A
+     2097152         65536     float    none      -1    24.57   85.34   74.67      0    24.49   85.63   74.92    N/A
+     4194304        131072     float    none      -1    37.98  110.43   96.63      0    37.90  110.66   96.83    N/A
+     8388608        262144     float    none      -1    33.59  249.75  218.53      0    33.91  247.40  216.48    N/A
+    16777216        524288     float    none      -1    50.47  332.43  290.88      0    50.41  332.81  291.21    N/A
+    33554432       1048576     float    none      -1    78.44  427.79  374.31      0    77.37  433.67  379.46    N/A
+    67108864       2097152     float    none      -1    130.1  515.96  451.47      0    129.7  517.59  452.89    N/A
+   134217728       4194304     float    none      -1    227.7  589.56  515.87      0    226.7  592.04  518.03    N/A
+   268435456       8388608     float    none      -1    418.2  641.88  561.64      0    417.1  643.65  563.19    N/A
+   536870912      16777216     float    none      -1    796.3  674.18  589.91      0    790.9  678.79  593.94    N/A
+  1073741824      33554432     float    none      -1   1490.4  720.44  630.39      0   1539.1  697.62  610.42    N/A
+  2147483648      67108864     float    none      -1   2989.6  718.31  628.52      0   3103.4  691.97  605.47    N/A
+  4294967296     134217728     float    none      -1   5612.2  765.29  669.63      0   5645.5  760.78  665.68    N/A
+  8589934592     268435456     float    none      -1    11059  776.74  679.65      0    11171  768.98  672.86    N/A
+ 17179869184     536870912     float    none      -1    21943  782.92  685.06      0    22211  773.49  676.81    N/A
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 407.955
+#
+# Collective test concluded: alltoall_perf
+```
+
+##### NCCL All to All Scale Performance 16 Hosts 1 Rack
+
+```bash
+# Collective test starting: alltoall_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 585240 on   GPU-5705 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 585241 on   GPU-5705 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank 62 Group  0 Pid 497099 on   GPU-6569 device  2 [0018:06:00] NVIDIA GB300
+#  Rank 63 Group  0 Pid 497101 on   GPU-6569 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288          2048     float    none      -1    32.65   16.06   15.81      0    31.18   16.81   16.55    N/A
+     1048576          4096     float    none      -1    30.96   33.86   33.33      0    31.00   33.82   33.29    N/A
+     2097152          8192     float    none      -1    32.74   64.06   63.06      0    30.96   67.75   66.69    N/A
+     4194304         16384     float    none      -1    46.68   89.86   88.46      0    43.46   96.51   95.01    N/A
+     8388608         32768     float    none      -1    72.50  115.71  113.90      0    69.86  120.08  118.20    N/A
+    16777216         65536     float    none      -1    126.8  132.33  130.27      0    123.1  136.27  134.14    N/A
+    33554432        131072     float    none      -1    236.0  142.20  139.98      0    230.7  145.47  143.20    N/A
+    67108864        262144     float    none      -1    161.7  415.10  408.61      0    161.2  416.36  409.85    N/A
+   134217728        524288     float    none      -1    265.7  505.07  497.18      0    265.8  504.94  497.05    N/A
+   268435456       1048576     float    none      -1    463.1  579.61  570.55      0    461.9  581.22  572.13    N/A
+   536870912       2097152     float    none      -1    855.6  627.50  617.70      0    857.8  625.86  616.08    N/A
+  1073741824       4194304     float    none      -1   1623.0  661.57  651.23      0   1626.9  659.97  649.66    N/A
+  2147483648       8388608     float    none      -1   3224.2  666.05  655.64      0   3235.4  663.74  653.37    N/A
+  4294967296      16777216     float    none      -1   6469.2  663.91  653.53      0   7187.6  597.55  588.21    N/A
+  8589934592      33554432     float    none      -1    13028  659.33  649.03      0    12953  663.18  652.82    N/A
+ 17179869184      67108864     float    none      -1    25357  677.51  666.92      0    25565  672.01  661.51    N/A
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 370.718
+#
+# Collective test concluded: alltoall_perf
+```
+
+##### NCCL All to All Scale Performance 32 Hosts 2 Racks
+
+```bash
+# Collective test starting: alltoall_perf
+# nThread 1 nGpus 1 minBytes 524288 maxBytes 17179869184 step: 2(factor) warmup iters: 1 iters: 50 agg iters: 1 validation: 1 graph: 0
+#
+# Using devices
+#  Rank  0 Group  0 Pid 588359 on   GPU-5705 device  0 [0008:06:00] NVIDIA GB300
+#  Rank  1 Group  0 Pid 588360 on   GPU-5705 device  1 [0009:06:00] NVIDIA GB300
+...
+#  Rank 126 Group  0 Pid 565047 on   GPU-1631 device  2 [0018:06:00] NVIDIA GB300
+#  Rank 127 Group  0 Pid 565049 on   GPU-1631 device  3 [0019:06:00] NVIDIA GB300
+NCCL version 2.28.7+cuda13.0
+#
+#                                                              out-of-place                       in-place
+#       size         count      type   redop    root     time   algbw   busbw #wrong     time   algbw   busbw #wrong
+#        (B)    (elements)                               (us)  (GB/s)  (GB/s)            (us)  (GB/s)  (GB/s)
+      524288          1024     float    none      -1    580.6    0.90    0.90      0   1147.5    0.46    0.45    N/A
+     1048576          2048     float    none      -1    505.2    2.08    2.06      0   1137.4    0.92    0.91    N/A
+     2097152          4096     float    none      -1    454.3    4.62    4.58      0   2181.4    0.96    0.95    N/A
+     4194304          8192     float    none      -1    668.8    6.27    6.22      0    463.6    9.05    8.98    N/A
+     8388608         16384     float    none      -1    905.4    9.26    9.19      0   1285.1    6.53    6.48    N/A
+    16777216         32768     float    none      -1    755.0   22.22   22.05      0    957.1   17.53   17.39    N/A
+    33554432         65536     float    none      -1   1685.0   19.91   19.76      0   1975.8   16.98   16.85    N/A
+    67108864        131072     float    none      -1   3256.0   20.61   20.45      0   3222.5   20.83   20.66    N/A
+   134217728        262144     float    none      -1   2978.6   45.06   44.71      0   2982.0   45.01   44.66    N/A
+   268435456        524288     float    none      -1   5832.4   46.02   45.67      0   6973.0   38.50   38.20    N/A
+   536870912       1048576     float    none      -1    11816   45.44   45.08      0    11418   47.02   46.65    N/A
+  1073741824       2097152     float    none      -1    22346   48.05   47.68      0    22221   48.32   47.94    N/A
+  2147483648       4194304     float    none      -1    45193   47.52   47.15      0    44952   47.77   47.40    N/A
+  4294967296       8388608     float    none      -1    89190   48.16   47.78      0    89046   48.23   47.86    N/A
+  8589934592      16777216     float    none      -1   180191   47.67   47.30      0   179150   47.95   47.57    N/A
+ 17179869184      33554432     float    none      -1   357610   48.04   47.67      0   358715   47.89   47.52    N/A
+# Out of bounds values : 0 OK
+# Avg bus bandwidth    : 28.0844
+#
+# Collective test concluded: alltoall_perf
+```
+
+### Model Inference Performance
+
+| ModelVariant | Scale | DataType | TimeMean_ms | TimeStd_ms | MODEL_TFLOPS_per_GPU_Mean | MODEL_TFLOPS_per_GPU_Std |
+|-------------------|---------|---------|---------|---------|---------|---------|
+| pretrain_llama3_70b_fp8 | 64 | fp8 | 3711.880 | 6.482 | 1982.86 | 3.46 | 
+| pretrain_llama3_70b_fp8 | 128 | fp8 | 3740.600 | 9.992 | 1967.65 | 5.26 | 
+| pretrain_llama3_70b_nvfp4 | 64 |  | 2596.800 | 4.591 | 2834.28 | 5.01 | 
+| pretrain_llama3_8b_fp8 | 8 | fp8 | 3508.760 | 8.275 | 1922.73 | 4.52 | 
+| pretrain_llama3_8b_fp8 | 16 | fp8 | 3507.660 | 5.967 | 1923.30 | 3.26 | 
+| pretrain_llama3_8b_fp8 | 64 | fp8 | 3520.720 | 16.326 | 1916.23 | 8.84 | 
+| pretrain_llama3_8b_fp8 | 128 | fp8 | 3519.360 | 22.972 | 1917.02 | 12.47 | 
+| pretrain_llama3_8b_nvfp4 | 16 |  | 2902.870 | 4.996 | 2324.03 | 3.97 | 
+| pretrain_llama3_8b_nvfp4 | 64 |  | 2921.160 | 5.573 | 2309.47 | 4.40 | 
+| pretrain_nemotron4_15b_bf16 | 16 | bf16 | 0.929 | 0.001 | 1571.90 | 2.07 | 
+| pretrain_nemotron4_15b_bf16 | 32 | bf16 | 0.932 | 0.002 | 1566.70 | 3.00 | 
+| pretrain_nemotron4_15b_bf16 | 64 | bf16 | 0.943 | 0.001 | 1548.90 | 2.39 | 
+| pretrain_nemotron4_15b_fp8 | 4 | fp8 | 0.647 | 0.001 | 2257.60 | 4.39 | 
+| pretrain_nemotron4_15b_fp8 | 16 | fp8 | 0.629 | 0.001 | 2322.70 | 4.22 | 
+| pretrain_nemotron4_15b_fp8 | 16 | fp8 | 0.629 | 0.001 | 2322.80 | 4.73 | 
+| pretrain_nemotron4_15b_fp8 | 64 | fp8 | 0.636 | 0.002 | 2297.10 | 5.56 | 
+| pretrain_nemotron4_15b_fp8 | 64 | fp8 | 0.636 | 0.002 | 2297.30 | 5.42 | 
+| pretrain_nemotron4_15b_fp8 | 64 | fp8 | 0.637 | 0.001 | 2292.70 | 4.98 | 
+| pretrain_nemotron4_15b_fp8 | 64 | fp8 | 0.637 | 0.002 | 2293.10 | 8.14 | 
+| pretrain_nemotron4_15b_fp8 | 72 | fp8 | 0.649 | 0.001 | 2249.70 | 4.27 | 
+| pretrain_nemotron4_15b_fp8 | 72 | fp8 | 0.652 | 0.001 | 2242.20 | 4.47 | 
+| pretrain_nemotronh_56b_fp8 | 32 | fp8 | 4411.080 | 8.646 | 1868.50 | 3.67 | 
+| pretrain_nemotronh_56b_fp8 | 64 | fp8 | 4411.720 | 6.388 | 1868.24 | 2.69 | 
+| pretrain_nemotronh_56b_fp8 | 128 | fp8 | 4609.220 | 102.219 | 1789.01 | 40.08 | 
+| pretrain_qwen3_235b_a22b | 64 | bf16 | 13353.740 | 61.251 | 726.52 | 3.28 | 
+| pretrain_qwen3_235b_a22b | 64 | fp8 | 12240.110 | 4.024 | 792.62 | 0.25 | 
+| pretrain_qwen3_30b_a3b | 8 | bf16 | 9022.130 | 2.131 | 668.46 | 0.16 | 
+| pretrain_qwen3_30b_a3b | 8 | fp8 | 9124.950 | 4.338 | 660.93 | 0.32 | 
+| pretrain_qwen3_30b_a3b | 16 | bf16 | 9002.620 | 2.037 | 669.90 | 0.16 | 
+| pretrain_qwen3_30b_a3b | 16 | fp8 | 9102.910 | 5.686 | 662.52 | 0.41 | 
+| pretrain_qwen3_30b_a3b | 32 | bf16 | 8999.780 | 3.286 | 670.13 | 0.25 | 
+| pretrain_qwen3_30b_a3b | 32 | fp8 | 9102.860 | 5.750 | 662.51 | 0.40 | 
+| pretrain_qwen3_30b_a3b | 64 | bf16 | 9024.360 | 4.128 | 668.30 | 0.31 | 
+| pretrain_qwen3_30b_a3b | 64 | fp8 | 9170.630 | 226.823 | 657.96 | 15.31 | 
+
+# OKE GPU Getting Started
+*needs_content*
+
+# Troubleshooting
+
+Here you can find suggested troubleshooting methods.
+
+* [nvidia-smi](#nvidia-smi)
+* [gpu-fryer](#gpu-fryer)
+* [nvbandwidth](#nvbandwidth)
+* [Babel Stream](#babel-stream)
+* [DCGMI](#dcgmi)
+
+## nvidia-smi
+
+To see information about the GPUs and the process on the system run
+nvidia-smi. The GPUs will be listed from 0-3 along with the relevant
+information
+
+(i.e. device id, temperature, power, etc). At the very bottom you will
+see which processes, if any, are running on the GPUs.
+
+```bash
+ubuntu@GPU-6773:~$ nvidia-smi
+Thu Dec 11 19:13:33 2025
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GB300                   On  |   00000008:06:00.0 Off |                    0 |
+| N/A   33C    P0            237W / 1400W |       1MiB / 284208MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA GB300                   On  |   00000009:06:00.0 Off |                    0 |
+| N/A   33C    P0            233W / 1400W |       1MiB / 284208MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   2  NVIDIA GB300                   On  |   00000018:06:00.0 Off |                    0 |
+| N/A   35C    P0            238W / 1400W |       1MiB / 284208MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   3  NVIDIA GB300                   On  |   00000019:06:00.0 Off |                    0 |
+| N/A   34C    P0            234W / 1400W |       1MiB / 284208MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+```
+
+To check the VBIOS version running on your GPU system.
+
+```bash
+ubuntu@GPU-6773:~$ nvidia-smi -q | grep -i "vbios version"
+    VBIOS Version                         : 97.10.4A.00.05
+    VBIOS Version                         : 97.10.4A.00.05
+    VBIOS Version                         : 97.10.4A.00.05
+    VBIOS Version                         : 97.10.4A.00.05
+```
+
+## numcatl
+
+Shows the information about the number of cores and numa domains For the
+GB300 you should see something like\
+below unless hyperthreading is disabled. In that case you would see
+0-111 cores.
+
+    numactl --hardware
+    numactl --show
+
+```bash
+ubuntu@GPU-6773:~$ numactl --show
+policy: bind
+preferred node: 0
+physcpubind: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
+23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46
+47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70
+71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94
+95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113
+114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131
+132 133 134 135 136 137 138 139 140 141 142 143
+cpubind: 0 1
+nodebind: 0 1
+membind: 0 1
+preferred: 0 1
+```
+
+## RDMA link
+
+To see the interfaces run the command "rdma link". The frontend network
+is (eth0) mlx5_4.  The state should show up as "ACTIVE" and the
+physical_state as "LINK_UP" (it is on if eth1 is DOWN unless you have
+enabled both front end NICs)
+
+```bash
+ubuntu@GPU-6773:~$ rdma link
+link mlx5_0/1 state ACTIVE physical_state LINK_UP netdev rdma0
+link mlx5_1/1 state ACTIVE physical_state LINK_UP netdev rdma1
+link mlx5_2/1 state ACTIVE physical_state LINK_UP netdev rdma2
+link mlx5_3/1 state ACTIVE physical_state LINK_UP netdev rdma3
+link mlx5_4/1 state ACTIVE physical_state LINK_UP netdev eth0
+link mlx5_5/1 state ACTIVE physical_state LINK_UP netdev rdma4
+link mlx5_6/1 state ACTIVE physical_state LINK_UP netdev rdma5
+link mlx5_7/1 state ACTIVE physical_state LINK_UP netdev rdma6
+link mlx5_8/1 state ACTIVE physical_state LINK_UP netdev rdma7
+link mlx5_9/1 state DOWN physical_state DISABLED netdev eth1
+```
+
+## IB Write BW
+The following script can be used to test bandwidth between two hosts.
+*Note*: The binary version of this is included with the OCI HPC stack.
+
+<details>
+<summary>ib_write_bw.sh</summary>
+
+```bash
+#!/bin/bash 
+# Script to be added here
+```
+
+</details>
+
+Expected results: - 380-385 Gb/sec
+
+
+Server Execution: 
+```bash
+numactl -N 0 /usr/bin/ib_write_bw -F -q 2 -x 3 --report_gbits -d mlx5_
+```
+
+Client Execution: 
+```bash
+numactl -N 0 /usr/bin/ib_write_bw -F -q 2 -x 3 --report_gbits -d mlx5_
+```
+
+## IB Write Lat
+
+The following script can be used to test RDMA latency between two hosts.
+*Note*: The binary version of this is included with the OCI HPC stack.
+
+<details>
+<summary>ib_write_lat.sh</summary>
+
+```bash
+#!/bin/bash
+
+# run ib_write_lat between two nodes
+# Usage:
+#   If on bastion:    ./ib_write_lat.sh <server> <client>
+#   If on one compute node:  ./ib_write_lat.sh <server>
+
+Server=$1
+Client=${2:-localhost}
+
+# Default Dev is not needed here because we will override it in the loop
+# Dev=${3:-mlx5_17}
+
+# Fetch the shape string from the given Server via the metadata service
+shape=$(ssh "$Server" 'curl -sH "Authorization: Bearer Oracle" -L http://169.254.169.254/opc/v2/instance/ | jq -r .shape')
+
+# Build a Bash array called HCA_ARRAY based on the shape
+HCA_ARRAY=()
+case "$shape" in
+  BM.GPU4.8)
+    # 16 HCAs total → split into two arrays of 8 each
+    HCA_ARRAY=(mlx5_0  mlx5_1  mlx5_2  mlx5_3
+               mlx5_6  mlx5_7  mlx5_8  mlx5_9
+               mlx5_10 mlx5_11 mlx5_12 mlx5_13
+               mlx5_14 mlx5_15 mlx5_16 mlx5_17)
+    ;;
+  BM.GPU.A100-v2.8)
+    HCA_ARRAY=(mlx5_1  mlx5_2  mlx5_3  mlx5_4
+               mlx5_5  mlx5_6  mlx5_7  mlx5_8
+               mlx5_9  mlx5_10 mlx5_11 mlx5_12
+               mlx5_14 mlx5_15 mlx5_16 mlx5_17)
+    ;;
+  BM.GPU.H100.8)
+    HCA_ARRAY=(mlx5_0  mlx5_1  mlx5_3  mlx5_4
+               mlx5_5  mlx5_6  mlx5_7  mlx5_8
+               mlx5_9  mlx5_10 mlx5_12 mlx5_13
+               mlx5_14 mlx5_15 mlx5_16 mlx5_17)
+    ;;
+  BM.GPU.H200.8|BM.GPU.B200.8)
+    # For both H200.8 and B200.8 shapes, the same set of 8 HCAs
+    HCA_ARRAY=(mlx5_0  mlx5_3  mlx5_4  mlx5_5
+               mlx5_6  mlx5_9  mlx5_10 mlx5_11)
+    ;;
+  BM.GPU.GB200.4)
+    HCA_ARRAY=(mlx5_0  mlx5_1  mlx5_3  mlx5_4)
+    ;;
+  BM.GPU.GB200-v2.4)
+    HCA_ARRAY=(mlx5_0  mlx5_1  mlx5_3  mlx5_4)
+    ;;
+  BM.GPU.GB200-v3.4)
+    HCA_ARRAY=(mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_5 mlx5_6 mlx5_7 mlx5_8)
+    ;;    
+  BM.GPU.GB300.4)
+    HCA_ARRAY=(mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_5 mlx5_6 mlx5_7 mlx5_8)
+    ;;
+  BM.GPU.B4.8)
+    HCA_ARRAY=(mlx5_1  mlx5_2  mlx5_3  mlx5_4
+               mlx5_5  mlx5_6  mlx5_7  mlx5_8
+               mlx5_9  mlx5_10 mlx5_11 mlx5_12
+               mlx5_14 mlx5_15 mlx5_16 mlx5_17)
+    ;;
+  BM.Optimized3.36)
+    HCA_ARRAY=(mlx5_2)
+    ;;
+  *)
+    echo "Error: Shape '$shape' is not supported."
+    exit 1
+    ;;
+esac
+
+# Compute where to split the array in half (integer division).
+# For N HCAs, the first N/2 go to NUMA 0; the remaining go to NUMA 1.
+total_hcas=${#HCA_ARRAY[@]}
+half=$(( total_hcas / 2 ))
+
+cmd_base="/usr/bin/ib_write_lat -F -x 3 -s 8 -n 10000"
+
+# Iterate over each HCA; the index determines the NUMA node.
+for idx in "${!HCA_ARRAY[@]}"; do
+  Dev="${HCA_ARRAY[$idx]}"
+
+  # Decide which NUMA node (0 or 1) based on index < half
+  if (( idx < half )); then
+    numa_node=0
+  else
+    numa_node=1
+  fi
+
+  echo -n "$Server $Client $Dev → NUMA $numa_node: "
+
+  # Start server side in background (no output)
+  ssh "$Server" "numactl -N $numa_node $cmd_base -d $Dev" \
+    > /dev/null 2>&1 &
+
+  # Give server 1 second to start listening
+  sleep 1
+
+  # On the client side, bind to the same NUMA node
+  LATENCY=$(ssh "$Client" "numactl -N $numa_node $cmd_base -d $Dev $Server" \
+               | grep '^ 8[[:space:]]\+10000' \
+               | awk '{print $6}')
+
+  # Print just the raw latency number
+  echo "$LATENCY"
+
+  # (Optional) If you want to wait for the server process to finish before moving on,
+  # uncomment the next line. Otherwise, backgrounded server will be reaped when done.
+  # wait
+done
+```
+
+</details>
+
+Expected results:
+
+- 1.8 - 1.9 us (In rack)
+
+- 3.15 - 3.25 us (Cross rack)
+
+Server Execution: 
+```bash
+numactl -N 0 /usr/bin/ib_write_lat -F -q 2 -x 3 --report_gbits -d mlx5_
+```
+Client Execution: 
+```bash
+numactl -N 0 /usr/bin/ib_write_lat -F -q 2 -x 3 --report_gbits -d mlx5_
+```
+
+#### GFAB6
+
+Note: To verify that you are running within a block or cross block run
+the following command. If the customerLocalBlock values are the same
+then they are in the same block. Otherwise, you are running cross block
+
+```bash
+clush -w <host list> 'curl -qs -H "Authorization: Bearer Oracle" -L http://169.254.169.254/opc/v2/host | grep customerLocalBlock' | sort -k 3
+```
+
+Within Block
+
+```bash
+ubuntu@<cluster>-controller:/opt/oci-hpc/scripts$ bash
+ib_write_lat.sh GPU-205 GPU-391
+
+GPU-205 GPU-391 mlx5_0 → NUMA 0: 2.75
+
+GPU-205 GPU-391 mlx5_1 → NUMA 0: 2.82
+
+GPU-205 GPU-391 mlx5_2 → NUMA 0: 2.82
+
+GPU-205 GPU-391 mlx5_3 → NUMA 0: 2.79
+
+GPU-205 GPU-391 mlx5_5 → NUMA 1: 2.80
+
+GPU-205 GPU-391 mlx5_6 → NUMA 1: 2.79
+
+GPU-205 GPU-391 mlx5_7 → NUMA 1: 2.79
+
+GPU-205 GPU-391 mlx5_8 → NUMA 1: 2.81
+
+Cross Block
+
+ubuntu@<cluster>-controller:/opt/oci-hpc/scripts$ bash
+ib_write_lat.sh GPU-205 GPU-7781
+
+GPU-205 GPU-7781 mlx5_0 → NUMA 0: 5.12
+
+GPU-205 GPU-7781 mlx5_1 → NUMA 0: 5.17
+
+GPU-205 GPU-7781 mlx5_2 → NUMA 0: 5.11
+
+GPU-205 GPU-7781 mlx5_3 → NUMA 0: 5.12
+
+GPU-205 GPU-7781 mlx5_5 → NUMA 1: 5.09
+
+GPU-205 GPU-7781 mlx5_6 → NUMA 1: 5.08
+
+GPU-205 GPU-7781 mlx5_7 → NUMA 1: 5.11
+
+GPU-205 GPU-7781 mlx5_8 → NUMA 1: 5.10
+```
+
+## gpu-fryer
+
+gpu-fryer is a utility that will saturate the GPUs and monitor their
+temperature, expected FLOPS performance, etc.  
+
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh . "$HOME/.cargo/env"
+    cargo install --git https://github.com/huggingface/gpu-fryer.git
+    gpu-fryer --nvml-lib-path /usr/lib/aarch64-linux-gnu/libnvidia-ml.so.1 120
+
+## nvbandwidth
+
+This tool measures the bandwidth using NVLink between the GPUs. To run
+this test, you will need to install it on \
+your system. The commands below show how to install it on a Ubuntu and
+Debian system.
+
+    git clone https://github.com/NVIDIA/nvbandwidth
+    cd nvbandwidth
+    sudo ./debian_install.sh
+    sudo chown -R $USER:$USER CMakeFiles
+    cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.8/bin/nvcc
+    make
+    ./nvbandwidth | grep SUM
+
+Example output:
+
+```bash
+SUM host_to_device_memcpy_ce 845.90
+SUM device_to_host_memcpy_ce 773.99
+SUM host_to_device_bidirectional_memcpy_ce 687.62
+SUM device_to_host_bidirectional_memcpy_ce 684.44
+SUM device_to_device_memcpy_read_ce 9222.82
+SUM device_to_device_memcpy_write_ce 9310.53
+SUM device_to_device_bidirectional_memcpy_read_ce_read1 9164.05
+SUM device_to_device_bidirectional_memcpy_read_ce_read2 9166.43
+SUM device_to_device_bidirectional_memcpy_read_ce_total 18330.48
+SUM device_to_device_bidirectional_memcpy_write_ce_write1 9259.65
+SUM device_to_device_bidirectional_memcpy_write_ce_write2 9254.11
+SUM device_to_device_bidirectional_memcpy_write_ce_total 18513.76
+SUM all_to_host_memcpy_ce 739.69
+SUM all_to_host_bidirectional_memcpy_ce 363.74
+SUM host_to_all_memcpy_ce 750.46
+SUM host_to_all_bidirectional_memcpy_ce 365.40
+SUM all_to_one_write_ce 3179.47
+SUM all_to_one_read_ce 2636.80
+SUM one_to_all_write_ce 2924.11
+SUM one_to_all_read_ce 3179.69
+SUM host_to_device_memcpy_sm 845.65
+SUM device_to_host_memcpy_sm 773.50
+SUM host_to_device_bidirectional_memcpy_sm 669.64
+SUM device_to_host_bidirectional_memcpy_sm 670.27
+SUM device_to_device_memcpy_read_sm 9435.11
+SUM device_to_device_memcpy_write_sm 8606.99
+SUM device_to_device_bidirectional_memcpy_read_sm_read1 8086.72
+SUM device_to_device_bidirectional_memcpy_read_sm_read2 8082.65
+SUM device_to_device_bidirectional_memcpy_read_sm_total 16169.37
+SUM device_to_device_bidirectional_memcpy_write_sm_write1 8476.42
+SUM device_to_device_bidirectional_memcpy_write_sm_write2 8474.04
+SUM device_to_device_bidirectional_memcpy_write_sm_total 16950.46
+SUM all_to_host_memcpy_sm 707.69
+SUM all_to_host_bidirectional_memcpy_sm 347.09
+SUM host_to_all_memcpy_sm 716.37
+SUM host_to_all_bidirectional_memcpy_sm 349.69
+SUM all_to_one_write_sm 2873.36
+SUM all_to_one_read_sm 2883.14
+SUM one_to_all_write_sm 2924.14
+SUM one_to_all_read_sm 2873.79
+SUM host_device_latency_sm 2312.78
+SUM device_to_device_latency_sm 20525.53
+SUM device_local_copy 13249.68
+```
+
+## Babel Stream
+
+BabelStream is a synthetic benchmark based on the STREAM benchmark for
+CPUs, designed to measure memory \
+transfer rates to and from global device memory on GPUs and other
+processors. It implements kernels like Copy, \
+Mul, Add, Triad, Dot, and nstream across various parallel programming
+models (e.g., CUDA, HIP, SYCL, \
+OpenMP), enabling cross-platform and cross-model comparisons of
+achievable memory bandwidth.
+
+    git clone <https://github.com/UoB-HPC/BabelStream.git>\
+    cd BabelStream\
+    mkdir build\
+    cmake -B build -DMODEL=cuda -DCMAKE\_CUDA\_COMPILER=/usr/local/cuda-12.8/bin/nvcc -\
+    DCUDA\_ARCH=sm\_100\
+    cd build\
+    make\
+    ./cuda-stream\
+
+![Babel Stream](media/babel-stream.png)
+
+DCGMI
+-----
+
+This command can be used to identify GPU issues. It has multiple levels
+of tests available:
+
+    dcgmi diag -r [1,2,3,4]
+
+As of version 4.2, these are the available testing details
+(from <https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html>):\
+
+![DCGMI](media/dcgmi.png)
+
+<!-- For more information on common issues and recommended actions, please
+see the separate "BM.GPU.H100.8 and \
+BM.GPU.H200.8 Recommended Health Checks" document -->
+
+# Further Reading & Support
+
+*   [GB300 Specific Deployment and Management Notes](#gb300-specific-deployment-and-management-notes)
+    *   [GPU Memory Fabric (GMF)](#gpu-memory-fabric-(gmf))
+    *   [GPU Memory Cluster (GMC)](#gpu-memory-cluster-(gmc))
+    *   [Topology aware scheduling](#topology-aware-scheduling)
+    *   [Required IAM Policies](#required-iam-policies)
+    *   [Viewing Resource Connections via oci CLI](#viewing-resource-connections-via-oci-cli)
+        *   [Example resource discovery commands](#example-resource-discovery-commands)
+    *   [Deployment](#deployment)
+        *   [IMEX](#imex)
+        *   [Unhealthy Resource Tagging](#unhealthy-resource-tagging)
+
+## GB300 Specific Deployment and Management Notes
+Below you will find specific information related to the GB300 shape.  
+
+### GPU Memory Fabric (GMF)
+
+A GPU Memory Fabric OCID is a customer identifier in a capacity topology
+that groups the hosts connected to a single NVLink 72 switch (AKA a
+single rack, or single physical NVLink domain).  It takes the form
+\"ocid1.computegpumemoryfabric.oc1\...\"
+
+### GPU Memory Cluster (GMC)
+
+A GPU Memory Cluster (GMC) gets created from some or all of the hosts on
+a single GMF.  When the GMC is created the hosts that are part of the
+cluster are instantiated as part of the specified (and required) Compute
+Cluster.  A GMC must be associated with a Compute Cluster, and many GMCs
+from different GMFs can be associated with the same Compute Cluster.
+ The OCID takes the form \"ocid1.computegpumemorycluster.oc1\...\"
+
+Upon GMC creation, special NVLink and ROCe switch configuration takes
+place on the OCI side, so **launch via GMC is REQUIRED to use NVLink**
+**and ROCe with GB300 shape**.
+
+Instances of different shapes may also be in the same compute cluster
+alongside GB300 GMCs.
+
+### Topology aware scheduling
+
+Running your multi-host workload on thoughtfully selected hosts is
+especially important on GB300 clusters.  As can be seen in the NCCL
+example results below, A2A collective bandwidth between 16 hosts in a
+single GMF/GMC/rack will be on the order of 620 GB/s over NVLink,
+whereas this drops to 48 GB/s when things scale to 32 hosts across 2
+GMF/GMC/racks.
+
+From a network topology aware scheduling perspective,
+computegpumemoryfabric is a 1 to 1 relationship with computelocalblock.
+Put another way, a single computelocalblock will not \"contain\" more
+than a single computegpumemoryfabric.  Each Scalable Unit (SU) 
+corresponds to an OCI computenetworkblock (32 racks).  This means that
+existing best practices using SLURM or k8s or custom scheduler solutions
+based on OCI computelocalblock and computenetworkblock should continue
+to suffice with GPU.GB300.4.
+
+### Required IAM Policies
+
+Required policies (any-user can be replaced by the group launching the
+cluster):
+
+    Allow any-user to use compute-hpc-islands in tenancy 
+    Allow any-user to use compute-network-blocks in tenancy
+    Allow any-user to use compute-local-blocks in tenancy
+    Allow any-user to use compute-bare-metal-hosts in tenancy
+    Allow any-user to use compute-gpu-memory-fabrics in tenancy
+
+### Viewing Resource Connections via oci CLI:
+
+![Resource Connections](../../media/resource_connections.png)
+
+#### Example resource discovery commands:
+
+To list all GMFs in your regional dedicated capacity:
+
+    # use the root compartment / tenancy OCID for compartment-id
+    oci compute compute-gpu-memory-fabric list --compartment-id ocid1.tenancy.oc1... 
+    
+
+To get more details about a specific GMF:
+
+    oci compute compute-gpu-memory-fabric get \
+    --compute-gpu-memory-fabric-id ocid1.computegpumemoryfabric.oc1...
+
+To find the the GMF and instance associated with a baremetalhost:
+
+    oci compute compute-host get --compute-host-id ocid1.computebaremetalhost.oc1...
+
+To find all baremetalhosts on a given GMF:
+
+    oci compute compute-host list --network-resource-id ocid1.computegpumemoryfabric.oc1...
+
+To find the GMC an instance belongs to:
+
+    oci compute instance get --instance-id ocid1.instance.oc1...
+
+To find the computecluster, GMF, and instanceonfiguration associated
+with a GMC:
+
+    oci compute compute-gpu-memory-cluster get --compute-gpu-memory-cluster-id ocid1.computegpumemorycluster.oc1....
+
+To list all instances in a GMC:
+
+    oci compute compute-gpu-memory-cluster-instance-summary \
+    list-compute-gpu-memory-cluster-instances \
+    --compute-gpu-memory-cluster-id ocid1.computegpumemorycluster.oc1....
+
+To see additional details about the computecluster:
+
+    oci compute compute-cluster get --compute-cluster-id ocid1.computecluster.oc1....
+
+### Deployment
+
+The OCI [HPC](https://github.com/oracle-quickstart/oci-hpc) or 
+[OKE](https://github.com/oracle-quickstart/oci-hpc-oke) deployment stacks 
+can be used to deploy GB300 hosts on multiple GMFs.  
+Please see the readme associated with the version of
+the stack you are using for details.
+
+From the oci CLI, here is what is necessary to deploy GB300 hosts.  When
+you create the GMC, OCI will attempt to instantiate \<size\> hosts, no
+additional instance launch command is needed.
+
+Find all of your available fabrics:
+
+    #Use the root compartment / tenancy OCID for compartment-id
+    oci compute compute-gpu-memory-fabric list --compartment-id ocid1.tenancy...  
+
+Create a compute cluster in which you will create the GMCs:
+
+    #Use the target compartment OCID
+    oci compute compute-cluster create --availability-domain XXX --compartment-id ocid1.compartment... 
+
+Create an instance configuration to use for instance launch in the GMC. 
+Use the target compartment OCID. It may be easier to create an instance
+configuration via OCI web console than use JSON input file:
+
+    oci compute-management instance-configuration create --compartment-id ocid1.compartment... --instance-details XXX_JSON_XXX 
+
+**Note:** It is recommended that you create the GMC **with all of the**
+**available hosts** in the fabric. This is necessary to properly size the
+NVLink partition (support for multi-cast) since once the partition is
+created it will not be updated when adding new nodes. The only way to
+update it once it has be created is to delete the GMC and start over or
+idle the workload on the rack and then have OCI update the partition in
+the background.
+
+Create the GMC.  This will bring up \<size\> instances.  You can use the
+"available-host-count" from the "compute-gpu-memory-fabric list"
+step.  Use the target compartment OCID: 
+
+    oci compute compute-gpu-memory-cluster create --availability-domain XXX \
+    --compartment-id ocid1.compartment... --compute-cluster-id ocid1.computecluster... \
+    --instance-configuration-id XXX --gpu-memory-fabric-id ocid1.computegpumemoryfabric... --size XX    
+
+To increase the number of instances in an existing GMC set the size
+parameter to the total size you want (it is not an increment to the
+existing size):
+
+    oci compute compute-gpu-memory-cluster update --size XX --compute-gpu-memory-cluster-id ocid1.computegpumemorycluster...
+
+To shrink the number of instances in a GMC, normal/direct instance
+termination is used.
+
+To terminate all instances on a GMC and delete the GMC itself:
+
+    oci compute compute-gpu-memory-cluster delete --compute-gpu-memory-cluster-id ocid1.computecluster.oc1....
+
+#### IMEX
+
+Nvidia IMEX configures the hosts in a single rack to be able to communicate over NVLink. Broadly speaking, you will need to configure IMEX by adding a list of IPs or hostnames of the nodes in the rack (up to 18) that you want to be able to communicate in /etc/nvidia-imex/nodes_config.cfg on all hosts, and then restart the nvidia-imex service.  Consult the [Nvidia documentation](https://docs.nvidia.com/multi-node-nvlink-systems/imex-guide/overview.html) for complete details.
+
+#### Unhealthy Resource Tagging
+
+Unhealthy instance tagging is supported for GB300 instances.
+
+<!-- This should be end of doc -->
+
+
