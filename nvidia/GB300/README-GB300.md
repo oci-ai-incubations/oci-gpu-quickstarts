@@ -1046,19 +1046,18 @@ models (e.g., CUDA, HIP, SYCL, \
 OpenMP), enabling cross-platform and cross-model comparisons of
 achievable memory bandwidth.
 
-    git clone <https://github.com/UoB-HPC/BabelStream.git>\
-    cd BabelStream\
-    mkdir build\
-    cmake -B build -DMODEL=cuda -DCMAKE\_CUDA\_COMPILER=/usr/local/cuda-12.8/bin/nvcc -\
-    DCUDA\_ARCH=sm\_100\
-    cd build\
-    make\
-    ./cuda-stream\
+    git clone <https://github.com/UoB-HPC/BabelStream.git>
+    cd BabelStream
+    mkdir build
+    cmake -B build -DMODEL=cuda -DCMAKE\_CUDA\_COMPILER=/usr/local/cuda-12.8/bin/nvcc \
+    -DCUDA_ARCH=sm_100
+    cd build
+    make
+    ./cuda-stream
 
 ![Babel Stream](media/babel-stream.png)
 
-DCGMI
------
+## DCGMI
 
 This command can be used to identify GPU issues. It has multiple levels
 of tests available:
@@ -1066,7 +1065,7 @@ of tests available:
     dcgmi diag -r [1,2,3,4]
 
 As of version 4.2, these are the available testing details
-(from <https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html>):\
+(from <https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html>):
 
 ![DCGMI](media/dcgmi.png)
 
