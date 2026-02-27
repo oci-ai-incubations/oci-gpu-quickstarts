@@ -1,46 +1,62 @@
+# UNDER CONSTRUCTION
+**THIS DOCUMENT IS UNDER CONSTRUCTION**
+
 # OCI GPU Quick Start: NVIDIA B200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA B200 GPU shape.
 
-## Table of Contents
-1. [Hardware Specifications](#hardware-specifications)
-2. [Supported Golden OS Images](#supported-golden-os-images)
-3. [Hello World Verification](#hello-world-verification)
-4. [Performance Benchmarks](#health-check--baseline-benchmarks)
-5. [NCCL & Model Inference Performance](#nccl--model-inference-performance)
-6. [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
-7. [OKE GPU Getting Started](#oke-gpu-getting-started)
-8. [Further Reading & Support](#further-reading--support)
+# Table of Contents
+* [Hardware Specifications](#hardware-specifications)
+* [Recommended Operating Systems](#recommended-operating-systems)
+    * [Recommended Software Version](#recommended-software-version)
+    * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
+    * [Provided Images](#provided-images)
+    * [Hello World Verification](#hello-world-verification)
+* [Performance Benchmarks](#performance-benchmarks)
+    * [NCCL](#nccl)
+    * [Model Inference Performance](#model-inference-performance)
+* [OKE GPU Getting Started](#oke-gpu-getting-started)
+* [Troubleshooting](#troubleshooting)
+* [Further Reading & Support](#further-reading--support)
 
-## Onboarding
-
-All details to help you get started with NVIDIA B200 OCI Bare-Metal GPUs.
-
-### Hardware Specifications
-
+# Hardware Specifications
 
 | Shape Name        | GPU Model     | GPUs/Node | GPU Memory | System Memory | vCPU | Local Storage | Key Features         |
 |-------------------|---------------|-----------|------------|--------------|------|---------------|----------------------|
 | BM.GPU.B200.8     | NVIDIA B200   | 8         | 192 GB     | 2048 GB      | 128  | NVMe SSD      | Domain-specific accelerators, latest CUDA |
 
-See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
+*See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 
+# Recommended Operating Systems
+**Update/Verify This Section**
+• Oracle Linux 9+\
+• Ubuntu Linux 24.04+
 
-### Supported Golden OS Images
-Always use Oracle-provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCIDs and version info.
+## Recommended Software Version
+**Update/Verify This Section**
+• DOCA OFED 3.1.0+\
+• NVIDIA Driver 580.x+\
+• CUDA 13+\
+• NCCL 2.28.7+\
+• HPCX 2.24.1+\
+• Oracle Cloud Agent 1.55.0+
 
-Use Oracle-provided or approved images for security and supportability.
+## Custom OS image Creation with Packer
+
+To build your images using packer clone the OCI HPC Images repo and run the commands found there [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
+
+## Provided Images
+
+It is recommended to use Oracle provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCIDs and version info.
 
 | OS Version        | Image OCID (phx example)       | Download/Marketplace Link                                                                        |
 |-------------------|-------------------------------|--------------------------------------------------------------------------------------------------|
-| Oracle Linux 9.3  | `ocid1.image.oc1.phx.<xxxxxx>`| [Oracle Cloud Marketplace OL9.3 GPU (Sample)](https://cloud.oracle.com/marketplace/en_US/listing/xxxxxx) |
-| Oracle Linux 8.9  | `ocid1.image.oc1.phx.<yyyyyy>`| [Oracle Cloud Marketplace OL8.9 GPU (Sample)](https://cloud.oracle.com/marketplace/en_US/listing/yyyyyy) |
+**to be provided**
 
-See [OS Images Table](os-images.md) for region-specific OCIDs and version info.
+# Hello World Verification
 
-### Hello World Verification
+**Confirm Hardware & Drivers**
 
-**1. Confirm Hardware & Drivers**
-```sh
+```bash
 nvidia-smi
 
 +-----------------------------------------------------------------------------+
@@ -49,33 +65,70 @@ nvidia-smi
 |  0  NVIDIA B200            On   | 00000000:01:00.0 Off |                    0 |
 +----------------------------------------
 ```
-### Hello World CUDA Container
+
+## Hello World CUDA Container
+
 ```bash
 docker run --rm --gpus all nvcr.io/nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 
 ```
-### OKE GPU Getting Started
-1. Create OKE Cluster via OCI Console or CLI.
-2. Add GPU Node Pool: Choose B200 shape, use golden OS image.
-3. Install NVIDIA Device Plugin:
+
+# Performance Benchmarks
+
+NVIDIA publishes their [NCCL](https://developer.nvidia.com/nccl) (Nvidia
+Collective Communication Library) software as a toolkit for
+pre-defined 
+routines which are optimized for their hardware. This software is meant
+to accelerate Artificial Intelligence & 
+Machine Learning workloads running on NVIDIA GPU clusters. Detailed
+documentation can be found
+[here](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html).
+The NCCL operations which are important for this document are AllReduce
+and AlltoAll operations. 
+
+If the NCCL tests are not on your system, then you can build them using
+the commands below
+
+    git clone <https://github.com/NVIDIA/nccl-tests.git>
+    cd nccl-tests
+    make
+
+All tests run as follows with appropriate `--np` and `--hostfile` values
+provided:
+
 ```bash
-kubectl apply -f https://github.com/NVIDIA/k8s-device-plugin/raw/main/nvidia-device-plugin.yml
+mpirun --bind-to numa
+        --mca pml ucx
+        --mca coll ^hcoll
+        -x coll_hcoll_enable=0         
+        -x NCCL_DEBUG=WARN
+        -x NCCL_MNNVL_ENABLE=1
+        -x NCCL_CUMEM_ENABLE=1
+        -x UCX_NET_DEVICES=eth0
+        -x NCCL_IB_HCA==mlx5_0,mlx5_1,mlx5_2,mlx5_3,mlx5_5,mlx5_6,mlx5_7,mlx5_8
+        -x NCCL_NET_PLUGIN=/opt/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64/nccl_rdma_sharp_plugin/lib/[libnccl-net.so](http://libnccl-net.so).0
+        -x NCCL_NVLS_ENABLE=1
+        -x NCCL_SOCKET_IFNAME=eth0
+        -x NCCL_IB_GID_INDEX=3
+        -x NCCL_IB_TC=41
+        -x NCCL_IB_SL=0
+        -x NCCL_IB_TIMEOUT=22
+        -x RX_QUEUE_LEN=8192
+        -x IB_RX_QUEUE_LEN=8192
+        -x HCOLL_ENABLE_MCAST_ALL=0
+        -x NCCL_BUFFSIZE=16777216
+        -x NCCL_IB_QPS_PER_CONNECTION=4
+        -x NCCL_IB_SPLIT_DATA_ON_QPS=0
+        -x NCCL_NET_GDR_C2C=1
+        -x NCCL_MNNVLS_ENABLE=1
+        -x NCCL_DMABUF_ENABLE=1
+        --np xxx --hostfile ./yyy all_reduce_perf -b 512K -e 16G -f 2 -g 1 -n 50
 ```
-4. Run GPU-powered Kubernetes workloads:
-Example pod resource spec:
-```yaml
-resources:
-  limits:
-    nvidia.com/gpu: 1
-```
-5. Verify with Hello World CUDA container pod.
-See detailed instructions in OKE Onboarding Guide .
 
-## Performance & Debugging 
+## NCCL
+**Update Content**
 
-The section blow shares the base line numbers achieved and how to reproduce this with OCI BM GPUs.
-
-### Baseline Benchmarks
+## Model Inference Performance
 
 15 billion parameter variant (FP8/BF16)
 
@@ -159,9 +212,31 @@ MFU = 256 * 3.85e14 / 2.693 / 64 / 989e+12 = 57.82%
 | BF16      | 2250  | 2450  | 989  |
 | FP8       | 4500  | 4900  | 1979 |  
 
+
+# OKE GPU Getting Started
+
+1. Create OKE Cluster via OCI Console or CLI.
+2. Add GPU Node Pool: Choose B200 shape, use golden OS image.
+3. Install NVIDIA Device Plugin:
+```bash
+kubectl apply -f https://github.com/NVIDIA/k8s-device-plugin/raw/main/nvidia-device-plugin.yml
+```
+4. Run GPU-powered Kubernetes workloads:
+Example pod resource spec:
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 1
+```
+5. Verify with Hello World CUDA container pod.
+See detailed instructions in OKE Onboarding Guide .
+
+# Troubleshooting
+Here you can find suggested troubleshooting methods.
+
 ## Health Checks
 
-DR HPC Based Scrips & or OCI GPU Scanner
+**DR HPC Based Scrips & or OCI GPU Scanner Content**
 
 ## Further Reading & Support
 1. Blog on B200 hardware & its multi node performance AI for Employees

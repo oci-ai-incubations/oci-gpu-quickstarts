@@ -1,10 +1,13 @@
 # OCI GPU Quick Starts: AMD MI355X Instinct GPUs
+
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the AMD MI355X GPU bare-metal shape.
 
 MI355X shapes represent a specialized class of heterogeneous accelerated compute in Oracle Cloud Infrastructure (OCI), built around the AMD Instinct MI355X GPU. These shapes provide 8 MI355X GPUs per node, each with 288 GiB of high-bandwidth HBM memory, targeting large-scale AI/ML workloads and HPC.
 
-MI355X systems leverage AMD’s XGMI (Inter-GPU Express Global Memory Interconnect) for direct GPU-to-GPU connectivity within each node. On a typical MI355X system, all 8 GPUs are fully connected via XGMI, providing a single-hop, high-bandwidth, low-latency peer-to-peer path between any pair of GPUs. This topology is symmetrical, meaning all GPUs enjoy equal connectivity for workloads that depend on frequent collective or point-to-point communication.
+MI355X systems leverage AMD’s XGMI (Inter-GPU Express Global Memory Interconnect) for direct GPU-to-GPU connectivity within each node. On a typical MI355X system, all 8 GPUs are fully connected via XGMI, providing a single-hop, high-bandwidth, low-latency peer-to-peer path between any pair of GPUs. This topology is symmetrical, meaning all GPUs enjoy equal connectivity for workloads that depend on frequent collective or point-to-point 
+communication.
 
+<!-- 
 ## Table of Contents
 * [Onboarding](#onboarding)
   * [Hardware Specifications](#hardware-specifications)
@@ -21,25 +24,47 @@ MI355X systems leverage AMD’s XGMI (Inter-GPU Express Global Memory Interconne
 * [Troubleshooting](#troubleshooting)
 * [Further Reading & Support](#further-reading--support)
 
+-->
+# Table of Contents
 
-## Onboarding
+* [Hardware Specifications](hardware-specifications)
+* [Recommended Operating Systems](#recommended-operating-systems)
+    * [Recommended Software Version](#recommended-software-version)
+    * [Custom OS Image Creation with Packer](custom-os-image-creation-with-packer)
+    * [Provided Images](provided-images)
+* [Hello World Verification](hello-world-verification)
+* [Performance Benchmarks](performance-benchmarks)
+    * [RCCL & Model Inference Performance](rccl--model-inference-performance)
+* [OKE GPU Getting Started](oke-gpu-getting-started)
+* [Troubleshooting](Troubleshooting)
+* [Further Reading & Support](further-reading--support)
 
-All details to help you get started with AMD MI355X OCI Bare-Metal GPUs.
+# Hardware Specifications
 
-### Hardware Specifications
 
-| Shape Name        | GPU Model     | GPUs/Node | GPU Memory | GPU Memory Total |             CPU           | # of CPUs | System Memory | Local Storage	 | Host NIC | RDMA (ROCe) NICs |
+| Shape Name        | GPU Model     | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total |             CPU           | # of CPUs | System Memory | Local Storage	 | Host NIC | RDMA (ROCe) NICs |
 |-------------------|---------------|-----------|------------|----------------- |---------------------------|-----------|---------------|----------------|----------|-----------|
-| BM.GPU.MI355x.v0.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| AMD Pensando™ AI NIC, 8 1x400Gb/s Ethernet=3.2 Tb/s
-| BM.GPU.MI355x.v1.8| AMD MI355X    |   8       | 288 GB/GPU |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| Mellanox ConnectX-7, 8 1x400Gb/s=3.2 Tb/s
+| BM.GPU.MI355x.v0.8| AMD MI355X    |   8       | 288 |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| AMD Pensando™ AI NIC, 8 1x400Gb/s Ethernet=3.2 Tb/s
+| BM.GPU.MI355x.v1.8| AMD MI355X    |   8       | 288 |8x288GB = 2.3 TB  | 2 x AMD TURIN 9575F 3.3Ghz| 128 Cores | 3TB DDR	| 8xNVMe 7.68TB/disk = 61.44TB |NVIDIA CX-7 2x200GBps = 400GBps| Mellanox ConnectX-7, 8 1x400Gb/s=3.2 Tb/s
 
 See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 
+# Recommended Operating Systems
 
-### Supported OS Images
-Always use Oracle-provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCID's and version info.
+• Oracle Linux 9+\
+• Ubuntu Linux 24.04+
 
-Use Oracle-provided or approved images for security and supportability. To build your images using packer use this clone this repo and run these commands [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
+## Recommended Software Version
+
+**Section Needs Updating**
+
+## Custom OS image Creation with Packer
+
+To build your images using packer clone the OCI HPC Images repo and run the commands found there [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
+
+## Provided Images
+
+It is recommended to use Oracle-provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCID's and version info.
 
 | OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
@@ -48,57 +73,9 @@ Use Oracle-provided or approved images for security and supportability. To build
 | OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.0.0-AMD-ROCM-710.pkr.hcl`| [PAR Link](https://objectstorage.us-chicago-1.oraclecloud.com/p/ADstfRticRqOIwBHKo9HoFOheSC9mzHTx2mdx_j8e-aB9tGdPAVGsm1jzVEfs27G/n/iduyx1qnmway/b/oci-hpc-images/o/Canonical-Ubuntu-22.04-2025.10.31-0-OCA-DOCA-OFED-3.1.0-AMD-ROCM-710-2025.12.05) |  ROCM 7.1, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
 | OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl`| [PAR Link](https://objectstorage.us-chicago-1.oraclecloud.com/p/HeINbvoAL3xKI_rvUyMdnW_j-CCqCsqsUZ76arKCkW-4iMeQRAt_Wq_5HDZlEBSs/n/iduyx1qnmway/b/oci-hpc-images/o/Canonical-Ubuntu-22.04-2025.10.31-0-DOCA-OFED-3.0.0-AMD-ROCM-641-2025.12.05) |  ROCM 6.4, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
 
-## Getting Started & Validations
+# Hello World Verification
 
-Follow the details here to download the OS images into your tenancy. Once downloaded choose this custom image to deploy your bare metal instance. More details here on your deployment options. Once successfully booted up check for the below.
-
-### Bare-metal node validations
-
-**1. Confirm Hardware & Drivers**
-```sh
-amd-smi
-```
-```
-============================================= ROCm System Management Interface =============================================
-======================================================= Concise Info =======================================================
-Device  Node  IDs              Temp        Power     Partitions          SCLK     MCLK     Fan  Perf  PwrCap   VRAM%  GPU%  
-              (DID,     GUID)  (Junction)  (Socket)  (Mem, Compute, ID)                                                     
-============================================================================================================================
-0       3     0x75a3,   21010  44.0°C      257.0W    NPS1, SPX, 0        797Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
-1       5     0x75a3,   56525  44.0°C      272.0W    NPS1, SPX, 0        1027Mhz  2000Mhz  0%   auto  1400.0W  17%    2%    
-2       4     0x75a3,   28206  45.0°C      260.0W    NPS1, SPX, 0        771Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
-3       2     0x75a3,   28720  43.0°C      256.0W    NPS1, SPX, 0        496Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
-4       7     0x75a3,   25266  41.0°C      259.0W    NPS1, SPX, 0        712Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
-5       9     0x75a3,   20206  45.0°C      288.0W    NPS1, SPX, 0        2386Mhz  2000Mhz  0%   auto  1400.0W  17%    1%    
-6       8     0x75a3,   16143  43.0°C      285.0W    NPS1, SPX, 0        2404Mhz  2000Mhz  0%   auto  1400.0W  17%    1%    
-7       6     0x75a3,   8465   44.0°C      260.0W    NPS1, SPX, 0        722Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
-============================================================================================================================
-=================================================== End of ROCm SMI Log ====================================================
-```
-
-```sh
-numactl --hardware
-```
-
-```
-numactl --hardware
-available: 2 nodes (0-1)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
-node 0 size: 1547872 MB
-node 0 free: 1352749 MB
-node 1 cpus: 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
-node 1 size: 1548129 MB
-node 1 free: 1456225 MB
-node distances:
-node   0   1 
-  0:  10  32 
-  1:  32  10 
-```
-### Container based validations
-
-#### Hello World ROCm PyTorch Container
-
-You will need docker installed on the OS image before you can run this command. More on different functions that can be run [here](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/3rd-party/pytorch-install.html#using-docker-with-pytorch-pre-installed)
+You will need docker installed on the OS image before you can run this command. More information on different functions that can be run is found [here](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/3rd-party/pytorch-install.html#using-docker-with-pytorch-pre-installed)
 
 ```bash
 docker pull rocm/pytorch:latest
@@ -112,55 +89,17 @@ docker run -it \
     --shm-size 8G \
     rocm/pytorch:latest
 ```
-### Kubernetes based validations
-**OKE & Containers Getting Started**
-1. Create OKE Cluster via OCI Console or CLI.
-2. Add GPU Node Pool as self managed node: More info [here](https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengworkingwithselfmanagednodes.htm). You can use the same OS Image listed above and bootstrap the kubernetes components and registration to Kubernetes control plane. More abut adding it as [cloud init script here](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/files/oke-ubuntu-cloud-init.sh)
-3. Install AMD Device Plugin on OKE:
-```bash
-kubectl apply -f https://github.com/AMD/k8s-device-plugin/raw/main/AMD-device-plugin.yml
-```
-4. Run GPU-powered Kubernetes workloads:
-Example pod resource spec:
 
-[AMD RVS Test Yaml](/amd/MI355X/k8s/active-health-checks-rvs.yaml)
 
-5. Verify with Hello World ROCm container pod is deployable and you can see the AMD GPUs within it
-
-```bash
-kubectl create -f ./amd/MI355X/k8s/hello-world-rocm-oke.yaml
-```
-Output
-```bash
-kubectl logs amd-smi
-
-============================================= ROCm System Management Interface =============================================						
-======================================================= Concise Info =======================================================						
-Device  Node  IDs              Temp        Power     Partitions          SCLK     MCLK     Fan  Perf  PwrCap   VRAM%  GPU%						
-              (DID,     GUID)  (Junction)  (Socket)  (Mem, Compute, ID)                                                     						
-============================================================================================================================						
-0       3     0x75a3,   21010  54.0°C      1224.0W   NPS1, SPX, 0        2358Mhz  2000Mhz  0%   auto  1400.0W  98%    93% 						
-1       5     0x75a3,   56525  54.0°C      1231.0W   NPS1, SPX, 0        2366Mhz  2000Mhz  0%   auto  1400.0W  98%    95% 						
-2       4     0x75a3,   28206  55.0°C      1219.0W   NPS1, SPX, 0        2361Mhz  2000Mhz  0%   auto  1400.0W  98%    94% 						
-3       2     0x75a3,   28720  56.0°C      1249.0W   NPS1, SPX, 0        2340Mhz  2000Mhz  0%   auto  1400.0W  98%    96% 						
-4       7     0x75a3,   25266  52.0°C      1275.0W   NPS1, SPX, 0        2374Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
-5       9     0x75a3,   20206  56.0°C      1267.0W   NPS1, SPX, 0        2377Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
-6       8     0x75a3,   16143  54.0°C      1273.0W   NPS1, SPX, 0        2382Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
-7       6     0x75a3,   8465   54.0°C      1317.0W   NPS1, SPX, 0        2374Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
-============================================================================================================================						
-=================================================== End of ROCm SMI Log ====================================================	
-
-AMDSMI Tool: 24.6.2+2b02a07 | AMDSMI Library version: 24.6.2.0 | ROCm version: 7.1.2
-
-```
-## Performance 
+# Performance Benchmarks
 
 The section below has the base line numbers achieved and how to reproduce this with MI355X. When you run the same there is typically a variance of 5%-8% which is acceptable. 
 
-### RCCL Benchmarks
-Collective communications results single node.
+## RCCL & Model Inference Performance
 
-#### All Reduce
+Collective communications (RCCL) results are for a single node.
+
+### All Reduce
 
 ```bash
 /opt/rccl-tests/build/all_reduce_perf -b 512k -e 16G -f 2 -g 8
@@ -192,7 +131,7 @@ rccl-tests: Version HEAD:e1b8a3a
 #
 # Collective test concluded: all_reduce_perf
 ```
-#### All 2 All
+### All 2 All
 
 ```bash
 /opt/rccl-tests/build/alltoall_perf -b 512k -e 16G -f 2 -g 8
@@ -325,7 +264,93 @@ python3 /app/vllm/benchmarks/benchmark_serving.py --host localhost --port 8000 \
     --ignore-eos
 ```
 
-## Health Checks
+# OKE GPU Getting Started
+
+1. Create OKE Cluster via OCI Console or CLI.
+2. Add GPU Node Pool as self managed node: More info [here](https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengworkingwithselfmanagednodes.htm). You can use the same OS Image listed above and bootstrap the kubernetes components and registration to Kubernetes control plane. More abut adding it as [cloud init script here](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/files/oke-ubuntu-cloud-init.sh)
+3. Install AMD Device Plugin on OKE:
+```bash
+kubectl apply -f https://github.com/AMD/k8s-device-plugin/raw/main/AMD-device-plugin.yml
+```
+4. Run GPU-powered Kubernetes workloads:
+Example pod resource spec:
+
+[AMD RVS Test Yaml](/amd/MI355X/k8s/active-health-checks-rvs.yaml)
+
+5. Verify with Hello World ROCm container pod is deployable and you can see the AMD GPUs within it
+
+```bash
+kubectl create -f ./amd/MI355X/k8s/hello-world-rocm-oke.yaml
+```
+Output
+```bash
+kubectl logs amd-smi
+
+============================================= ROCm System Management Interface =============================================						
+======================================================= Concise Info =======================================================						
+Device  Node  IDs              Temp        Power     Partitions          SCLK     MCLK     Fan  Perf  PwrCap   VRAM%  GPU%						
+              (DID,     GUID)  (Junction)  (Socket)  (Mem, Compute, ID)                                                     						
+============================================================================================================================						
+0       3     0x75a3,   21010  54.0°C      1224.0W   NPS1, SPX, 0        2358Mhz  2000Mhz  0%   auto  1400.0W  98%    93% 						
+1       5     0x75a3,   56525  54.0°C      1231.0W   NPS1, SPX, 0        2366Mhz  2000Mhz  0%   auto  1400.0W  98%    95% 						
+2       4     0x75a3,   28206  55.0°C      1219.0W   NPS1, SPX, 0        2361Mhz  2000Mhz  0%   auto  1400.0W  98%    94% 						
+3       2     0x75a3,   28720  56.0°C      1249.0W   NPS1, SPX, 0        2340Mhz  2000Mhz  0%   auto  1400.0W  98%    96% 						
+4       7     0x75a3,   25266  52.0°C      1275.0W   NPS1, SPX, 0        2374Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
+5       9     0x75a3,   20206  56.0°C      1267.0W   NPS1, SPX, 0        2377Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
+6       8     0x75a3,   16143  54.0°C      1273.0W   NPS1, SPX, 0        2382Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
+7       6     0x75a3,   8465   54.0°C      1317.0W   NPS1, SPX, 0        2374Mhz  2000Mhz  0%   auto  1400.0W  98%    100%						
+============================================================================================================================						
+=================================================== End of ROCm SMI Log ====================================================	
+
+AMDSMI Tool: 24.6.2+2b02a07 | AMDSMI Library version: 24.6.2.0 | ROCm version: 7.1.2
+
+```
+
+# Troubleshooting
+
+Here you can find suggested troubleshooting methods.
+
+**1. Confirm Hardware & Drivers**
+```sh
+amd-smi
+```
+```
+============================================= ROCm System Management Interface =============================================
+======================================================= Concise Info =======================================================
+Device  Node  IDs              Temp        Power     Partitions          SCLK     MCLK     Fan  Perf  PwrCap   VRAM%  GPU%  
+              (DID,     GUID)  (Junction)  (Socket)  (Mem, Compute, ID)                                                     
+============================================================================================================================
+0       3     0x75a3,   21010  44.0°C      257.0W    NPS1, SPX, 0        797Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
+1       5     0x75a3,   56525  44.0°C      272.0W    NPS1, SPX, 0        1027Mhz  2000Mhz  0%   auto  1400.0W  17%    2%    
+2       4     0x75a3,   28206  45.0°C      260.0W    NPS1, SPX, 0        771Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
+3       2     0x75a3,   28720  43.0°C      256.0W    NPS1, SPX, 0        496Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
+4       7     0x75a3,   25266  41.0°C      259.0W    NPS1, SPX, 0        712Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
+5       9     0x75a3,   20206  45.0°C      288.0W    NPS1, SPX, 0        2386Mhz  2000Mhz  0%   auto  1400.0W  17%    1%    
+6       8     0x75a3,   16143  43.0°C      285.0W    NPS1, SPX, 0        2404Mhz  2000Mhz  0%   auto  1400.0W  17%    1%    
+7       6     0x75a3,   8465   44.0°C      260.0W    NPS1, SPX, 0        722Mhz   2000Mhz  0%   auto  1400.0W  17%    1%    
+============================================================================================================================
+=================================================== End of ROCm SMI Log ====================================================
+```
+
+```sh
+numactl --hardware
+```
+
+```
+numactl --hardware
+available: 2 nodes (0-1)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
+node 0 size: 1547872 MB
+node 0 free: 1352749 MB
+node 1 cpus: 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
+node 1 size: 1548129 MB
+node 1 free: 1456225 MB
+node distances:
+node   0   1 
+  0:  10  32 
+  1:  32  10 
+```
+**2. Health Checks**
 
 The [AMDs ROCm Validation Suite (RVS)](https://rocm.docs.amd.com/projects/ROCmValidationSuite/en/latest/) is a system validation and diagnostics tool for monitoring, stress testing, detecting, and troubleshooting issues that affect the functionality and performance of AMD GPUs operating in a high-performance/AI/ML computing environment. RVS is enabled using the ROCm software stack on a compatible software and hardware platform and is part of the OS images from OCI. 
 
@@ -375,23 +400,28 @@ Result
 +---------------------------------------------------------------------+
 [RESULT] [ 82145.821495] [module_terminate] PCIe monitoring ended after wait duration.
 ```
-## Troubleshooting
 
-The recommended tool for identifying the issues is ROCM AGFHC (AMD GPU Field Health Check). This tool is only made available to NDA OCI customers. Reach out to us to us to get access to this tool in container format. [More about AGHFC.](https://instinct.docs.amd.com/projects/gpu-operator/en/latest/test/agfhc.html).
+**3. ROCM AGFHC**
+The recommended tool for identifying additional issues is ROCM AGFHC (AMD GPU Field Health Check). This tool is only made available to NDA OCI customers. Reach out to us to us to get access to this tool in container format. [More about AGHFC.](https://instinct.docs.amd.com/projects/gpu-operator/en/latest/test/agfhc.html).
 
+**4. OCI GPU Scanner**
 We recommend you use OCI GPU Scanner to manage the OKE cluster health and GPU health. GPU scanner also provies continu=ious health check and auto-remidiation. [OCI GPU Scanner - Cluster Health Management Solution](https://github.com/oracle-quickstart/oci-gpu-scanner)
 
-## Further Reading & Support
+# Further Reading & Support
 
-### AMD Technical Documents
+This section has additional reference material which you may find useful.
+
+## AMD Technical Documents
+
 1. [AMD ROCM Software Compatibility Matrix](https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html1)
 2. [AMD ROcm Software Examples](https://github.com/ROCm/rocm-examples)
 3. [AMD Kubernetes GPU Operator](https://github.com/ROCm/gpu-operator)
 
-### OCI AMD 355X Blogs
+## OCI AMD 355X Blogs
+
 1. [OCI AMD MI355X - GA Announcement](https://www.oracle.com/news/announcement/ai-world-oracle-and-amd-expand-partnership-to-help-customers-achieve-next-generation-ai-scale-2025-10-14/)
 
-### OCI AMD 355X Technical Docs & Supported Solutions
+## OCI AMD 355X Technical Docs & Supported Solutions
 
 1. [OCI GPU Scanner - Cluster Health Management Solution](https://github.com/oracle-quickstart/oci-gpu-scanner)
 2. [OCI HPC SLURM Deployed Terraform Stack](https://github.com/oracle-quickstart/oci-hpc)
