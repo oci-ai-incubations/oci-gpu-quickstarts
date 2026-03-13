@@ -340,6 +340,7 @@ Results:
 
 ## Model Inference Performance
  | ModelVariant | GPUs | DataType | TimeMean_ms | TimeStd_ms | MODEL_TFLOPS_per_GPU_Mean | MODEL_TFLOPS_per_GPU_Std | Tokens_per_Second |
+ |-------------------|---------------|-----------|------------|-----------------|---------------------------|-----------|---------------|
  | pretrain_llama3_70b | 64 | fp4 | 2597 | 4.591 | 2834 | 5.01 | 403795 |
  | pretrain_llama3_70b | 64 | fp8 | 3712 | 6.482 | 1983 | 3.46 | 282492 |
  | pretrain_llama3_70b | 128 | fp8 | 3741 | 9.992 | 1968 | 5.26 | 560646 |
