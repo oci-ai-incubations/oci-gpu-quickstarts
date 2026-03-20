@@ -38,19 +38,19 @@ See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Com
 
 # Recommended Operating Systems
 
-• Ubuntu 22.04+
-• Kernel: 5.15.0-1074-oracle + (Use OCI-provided images for the Pollara variant whenever possible to ensure the correct kernel, drivers, and firmware alignment.)
+• Ubuntu 22.04+\
+• Kernel: 5.15.0-1074-oracle + (Use OCI-provided images for the Pollara variant whenever possible to ensure the correct kernel, drivers, and firmware alignment.)\
 • AINIC FW: 1.117.5-a-56 (For 8 x Pensando Backend NICs) 
 
 ## Recommended Software Version
 
-• ROCm: 7.0.2
-• RCCL: 2.26.6
-• Oracle Cloud Agent: 1.55.0+
-• Networking stack note (Pollara)
-• OFED: MLNX OFED 5.9 for 22.04 and 24.10 for 24.04 (For 2 x CX7 Frontend NICs)
-• OpenMPI: 4.1.6, 5.0.8
-• amd-anp (amd ainic network plugin designed to enhance performance for RCCL collective communications library)
+• ROCm: 7.0.2\
+• RCCL: 2.26.6\
+• Oracle Cloud Agent: 1.55.0+\
+• Networking stack note (Pollara)\
+• OFED: MLNX OFED 5.9 for 22.04 and 24.10 for 24.04 (For 2 x CX7 Frontend NICs)\
+• OpenMPI: 4.1.6, 5.0.8\
+• amd-anp (amd ainic network plugin designed to enhance performance for RCCL collective communications library)\
 • amd-argus
 
 ### Recommended Firmware (Managed by OCI)
