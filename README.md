@@ -6,9 +6,8 @@
 
 # OCI GPU Quickstarts
 </div>
-### Oracle Cloud Infrastructure GPU Onboarding Guides
 
----
+## Oracle Cloud Infrastructure GPU Onboarding Guides
 
 This repository hosts onboarding content for Oracle Cloud Infrastructure GPU offerings, organized by GPU family. Each guide provides:
 
