@@ -1,10 +1,6 @@
 <div align="center">
 
-![Oracle Cloud Infrastructure](https://img.shields.io/badge/Oracle_Cloud_Infrastructure-F80000?style=for-the-badge&logo=oracle&logoColor=white)&nbsp;&nbsp;
-![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=for-the-badge&logo=nvidia&logoColor=white)&nbsp;&nbsp;
-![AMD](https://img.shields.io/badge/AMD-ED1C24?style=for-the-badge&logo=amd&logoColor=white)
-
-# OCI GPU Quickstarts
+# OCI GPU Offerings Quickstars
 </div>
 
 ## Oracle Cloud Infrastructure GPU Onboarding Guides
@@ -25,13 +21,13 @@ This repository hosts onboarding content for Oracle Cloud Infrastructure GPU off
 
 | Vendor | Shape | Guide | Status |
 |--------|-------|-------|--------|
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | GB300 | [README-GB300.md](nvidia/GB300/README-GB300.md) | ✅ Complete |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | GB200 | [README-GB200.md](nvidia/GB200/README-GB200.md) | ✅ Complete |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B200 | [README-B200.md](nvidia/B200/README-B200.md) | 🚧 In Progress |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B300 | [README-B300.md](nvidia/B300/README-B300.md) | 🚧 In Progress |
-| ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI355X | [README-MI355X.md](amd/MI355X/README-MI355X.md) | ✅ Complete |
-| ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI355X (Pollara) | [README-MI355X-Pollara.md](amd/MI355X/README-MI355X-Pollara.md) | ✅ Complete |
-| ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI300X | [README-MI300X.md](amd/MI300X/README-MI300X.md) | 🚧 In Progress |
+|NVIDIA | GB300 | [README-GB300.md](nvidia/GB300/README-GB300.md) | ✅ Ready |
+|NVIDIA | GB200 | [README-GB200.md](nvidia/GB200/README-GB200.md) | ✅ Ready |
+|NVIDIA| B200 | [README-B200.md](nvidia/B200/README-B200.md) | 🚧 In Progress |
+| NVIDIA| B300 | [README-B300.md](nvidia/B300/README-B300.md) | 🚧 In Progress |
+| AMD | MI355X | [README-MI355X.md](amd/MI355X/README-MI355X.md) | ✅ Ready |
+| AMD | MI355X (Pollara) | [README-MI355X-Pollara.md](amd/MI355X/README-MI355X-Pollara.md) | ✅ Ready |
+|AMD  | MI300X | [README-MI300X.md](amd/MI300X/README-MI300X.md) | 🚧 In Progress |
 
 ---
 
