@@ -1,4 +1,4 @@
-# OCI GPU Quickstars
+# OCI GPU Quickstarts
 
 ## Oracle Cloud Infrastructure GPU Onboarding Guides
 

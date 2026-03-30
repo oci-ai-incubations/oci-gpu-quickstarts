@@ -6,6 +6,13 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 **Docs & technical content coming soon**
 
+## At a Glance
+
+- Shape family: `MI300X`
+- Status: `under construction`
+- Intended workload profile: `large-scale AI/ML and HPC`
+- Primary verification flow: `to be updated`
+
 # Table of Contents
 * [Hardware Specifications](hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)

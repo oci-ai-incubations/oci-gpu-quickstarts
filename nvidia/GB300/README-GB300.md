@@ -8,6 +8,15 @@ NVLink 72 can connect the GPUs on a single rack together (up to 18 hosts
 of 4 GPUs each).  This means that additional OCI constructs as well as
 Linux system level actions [need to be considered](#further-reading--support).  
 
+## At a Glance
+
+- Shape: `BM.GPU.GB300.4`
+- GPU configuration: `4 x NVIDIA GB300`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 24.04+`
+- Recommended software baseline: `DOCA OFED 3.1.0+, NVIDIA Driver 580.x+, CUDA 13+, NCCL 2.28.7+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `multi-host NVLink with GMF/GMC topology awareness`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)

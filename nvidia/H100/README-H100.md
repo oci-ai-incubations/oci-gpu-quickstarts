@@ -8,6 +8,15 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 BM.GPU.H100.8 is a high-bandwidth NVIDIA H100 bare-metal shape intended for large-scale AI and HPC workloads, with eight 80 GB GPUs, dual Intel Xeon Platinum 8480+ processors, and RoCE-capable scale-out networking.
 
+## At a Glance
+
+- Shape: `BM.GPU.H100.8`
+- GPU configuration: `8 x NVIDIA H100 80 GB`
+- Recommended OS baseline: `Oracle Linux 8+`, `Ubuntu Linux 20.04`, or `Ubuntu Linux 22.04`
+- Recommended software baseline: `NVIDIA Driver 104.12+, CUDA 12.2+, NCCL 2.19.3+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `scale-out AI and HPC with NCCL topology considerations`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)
@@ -162,4 +171,3 @@ Additional references:
 - [NCCL User Guide](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
 - [OCI H100 topology file](https://github.com/oracle-quickstart/oci-hpc/blob/master/samples/gpu/H100-topology.xml)
 - [OCI H100 OKE topology file](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/topology/BM.GPU.H100.8.xml)
-

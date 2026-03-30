@@ -7,6 +7,15 @@ MI355X shapes represent a specialized class of heterogeneous accelerated compute
 MI355X systems leverage AMD’s XGMI (Inter-GPU Express Global Memory Interconnect) for direct GPU-to-GPU connectivity within each node. On a typical MI355X system, all 8 GPUs are fully connected via XGMI, providing a single-hop, high-bandwidth, low-latency peer-to-peer path between any pair of GPUs. This topology is symmetrical, meaning all GPUs enjoy equal connectivity for workloads that depend on frequent collective or point-to-point 
 communication.
 
+## At a Glance
+
+- Shape family: `MI355X`
+- GPU configuration: `8 x AMD Instinct MI355X`
+- Recommended OS baseline: `Ubuntu Linux 22.04+`
+- Recommended software baseline: `ROCm 7.x, RCCL baseline per source, Oracle Cloud Agent current approved release`
+- Primary verification command: `amd-smi`
+- Operational profile: `single-node and scale-out AI/ML and HPC with XGMI topology`
+
 # Table of Contents
 
 * [Hardware Specifications](#hardware-specifications)

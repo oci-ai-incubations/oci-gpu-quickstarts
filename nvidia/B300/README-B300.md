@@ -11,6 +11,15 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 BM.GPU.B300.8 is a high-density GPU bare-metal shape built around eight NVIDIA B300 SXM6 AC GPUs, dual Intel Xeon Platinum 8592+ processors, 4 TB of DDR5 system memory, and high-bandwidth RoCE networking for both single-node and scale-out AI workloads.
 
+## At a Glance
+
+- Shape: `BM.GPU.B300.8`
+- GPU configuration: `8 x NVIDIA B300 SXM6 AC`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 24.04+`
+- Recommended software baseline: `NVIDIA Driver 590+ (Open), CUDA 13.1+, NCCL 2.28.9+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `single-node and scale-out AI workloads`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)

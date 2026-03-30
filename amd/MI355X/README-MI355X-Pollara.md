@@ -12,6 +12,15 @@ Pollara nodes are a variant of the MI355X bare metal GPU shape family in OCI tha
 
 Within each node, all 8 MI355X GPUs are connected via AMD XGMI, enabling a symmetrical, single-hop, high-bandwidth GPU-to-GPU topology suitable for communication-heavy workloads (e.g., model parallelism, pipeline parallelism, large batch training, and dense collectives).
 
+## At a Glance
+
+- Shape family: `MI355X-Pollara`
+- GPU configuration: `8 x AMD Instinct MI355X with Pollara networking`
+- Recommended OS baseline: `Ubuntu Linux 22.04+`
+- Recommended software baseline: `ROCm 7.2.0+, RCCL 2.26.6, MLNX OFED aligned with approved image`
+- Primary verification command: `docker pull rocm/pytorch:latest` plus GPU visibility checks
+- Operational profile: `scale-out AI and HPC over Ethernet with Pollara NICs`
+
 # Table of Contents
 
 * [Hardware Specifications](#hardware-specifications)

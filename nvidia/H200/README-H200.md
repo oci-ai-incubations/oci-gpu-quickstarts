@@ -8,6 +8,15 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 BM.GPU.H200.8 is a high-bandwidth NVIDIA H200 bare-metal shape intended for large-scale AI and HPC workloads, with eight 141 GB GPUs, dual Intel Xeon Platinum 8480+ processors, 3 TB of DDR5 memory, and RoCE-capable scale-out networking.
 
+## At a Glance
+
+- Shape: `BM.GPU.H200.8`
+- GPU configuration: `8 x NVIDIA H200 141 GB`
+- Recommended OS baseline: `Oracle Linux 8+` or `Ubuntu Linux 22.04+`
+- Recommended software baseline: `NVIDIA Driver 550+, CUDA 12.4+, NCCL 2.21.5+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `scale-out AI and HPC with single-subnet NCCL guidance`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)
@@ -157,4 +166,3 @@ Additional references:
 
 - [NCCL User Guide](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
 - [NVIDIA nvbandwidth](https://github.com/NVIDIA/nvbandwidth)
-

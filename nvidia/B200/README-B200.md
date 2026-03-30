@@ -4,6 +4,15 @@
 # OCI GPU Quick Start: NVIDIA B200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA B200 GPU shape.
 
+## At a Glance
+
+- Shape: `BM.GPU.B200.8`
+- GPU configuration: `8 x NVIDIA B200`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 24.04+`
+- Recommended software baseline: `DOCA OFED 3.1.0+, NVIDIA Driver 580.x+, CUDA 13+, NCCL 2.28.7+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `single-node and multi-node AI training workloads`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)

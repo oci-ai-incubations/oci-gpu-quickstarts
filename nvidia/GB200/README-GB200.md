@@ -1,6 +1,15 @@
 # OCI GPU Quick Start: NVIDIA GB200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA GB200 GPU shape.
 
+## At a Glance
+
+- Shape family: `BM.GPU.GB200.4`, `BM.GPU.GB200-v2.4`, `BM.GPU.GB200-v3.4`
+- GPU configuration: `4 x NVIDIA B200`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
+- Recommended software baseline: `NVIDIA Driver 570.x, CUDA 12.8, NCCL 2.27.3+`
+- Primary verification flow: `PyTorch container check and GPU visibility validation`
+- Operational profile: `rack-scale NVLink with topology-sensitive multi-host scheduling`
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
 * [Recommended Operating Systems](#recommended-operating-systems)
