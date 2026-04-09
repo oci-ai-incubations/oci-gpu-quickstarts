@@ -20,13 +20,13 @@ This repository hosts onboarding content for Oracle Cloud Infrastructure GPU off
 |--------|-------|-------|--------|
 | ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | GB300 | [README-GB300.md](nvidia/GB300/README-GB300.md) | ✅ Complete |
 | ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | GB200 | [README-GB200.md](nvidia/GB200/README-GB200.md) | ✅ Complete |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | H100 | [README-H100.md](nvidia/H100/README-H100.md) | 🚧 In Progress |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | H200 | [README-H200.md](nvidia/H200/README-H200.md) | 🚧 In Progress |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B200 | [README-B200.md](nvidia/B200/README-B200.md) | 🚧 In Progress |
-| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B300 | [README-B300.md](nvidia/B300/README-B300.md) | 🚧 In Progress |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | H100 | [README-H100.md](nvidia/H100/README-H100.md) | ✅ Complete |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | H200 | [README-H200.md](nvidia/H200/README-H200.md) | ✅ Complete |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B200 | [README-B200.md](nvidia/B200/README-B200.md) | ✅ Complete |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat-square&logo=nvidia&logoColor=white) | B300 | [README-B300.md](nvidia/B300/README-B300.md) | ✅ Complete |
 | ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI355X | [README-MI355X.md](amd/MI355X/README-MI355X.md) | ✅ Complete |
 | ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI355X (Pollara) | [README-MI355X-Pollara.md](amd/MI355X/README-MI355X-Pollara.md) | ✅ Complete |
-| ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI300X | [README-MI300X.md](amd/MI300X/README-MI300X.md) | 🚧 In Progress |
+| ![AMD](https://img.shields.io/badge/AMD-ED1C24?style=flat-square&logo=amd&logoColor=white) | MI300X | [README-MI300X.md](amd/MI300X/README-MI300X.md) | ✅ Complete |
 
 ---
 

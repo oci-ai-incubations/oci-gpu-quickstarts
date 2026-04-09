@@ -1,6 +1,3 @@
-# UNDER CONSTRUCTION
-**THIS DOCUMENT IS UNDER CONSTRUCTION**
-
 # OCI GPU Quick Start: AMD MI300X Instinct GPU
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the AMD MI300X GPU bare-metal shape.
 

@@ -1,6 +1,3 @@
-# UNDER CONSTRUCTION
-**THIS DOCUMENT IS UNDER CONSTRUCTION**
-
 # OCI GPU Quick Start: NVIDIA B200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA B200 GPU shape.
 

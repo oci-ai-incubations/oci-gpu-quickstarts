@@ -1,10 +1,3 @@
-> [!WARNING]
-> **INTERNAL USE ONLY — NOT FOR PUBLIC DISTRIBUTION**
-> This document has not been approved for public release. It must not be committed to a public repository or shared externally until this notice is explicitly removed by the document owner prior to merge.
-
-> [!CAUTION]
-> The source material for this shape is marked as **IN PROGRESS**. Content may be incomplete or subject to change. Verify with the document owner before use.
-
 # OCI GPU Quick Start: NVIDIA B300
 
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA B300 GPU shape.

@@ -1,7 +1,3 @@
-> [!WARNING]
-> **INTERNAL USE ONLY — NOT FOR PUBLIC DISTRIBUTION**
-> This document has not been approved for public release. It must not be committed to a public repository or shared externally until this notice is explicitly removed by the document owner prior to merge.
-
 # OCI GPU Quick Start: NVIDIA H100
 
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA H100 GPU shape.
