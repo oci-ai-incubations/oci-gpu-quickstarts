@@ -6,7 +6,7 @@ This document provides hardware specifications, supported OS images, onboarding 
 - Shape family: `BM.GPU.GB200.4`, `BM.GPU.GB200-v2.4`, `BM.GPU.GB200-v3.4`
 - GPU configuration: `4 x NVIDIA B200`
 - Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
-- Recommended software baseline: `NVIDIA Driver 570.x, CUDA 12.8, NCCL 2.27.3+`
+- Recommended software baseline: `DOCA OFED 3.2.1, NVIDIA Driver 580.105+ (Open), CUDA 13.0, NCCL 2.28.7+`
 - Primary verification flow: `PyTorch container check and GPU visibility validation`
 - Operational profile: `rack-scale NVLink with topology-sensitive multi-host scheduling`
 
@@ -40,12 +40,12 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 ## Recommended Software Version
 
-• OFED 23.10+ 
-• NVIDIA Driver 570.x
-• CUDA 12.8
-• NCCL 2.27.3+
-• HPCX 2.22.1+
-• Oracle Cloud Agent 1.51.0 +
+• DOCA OFED 3.2.1
+• NVIDIA Driver 580.105+ (Open)
+• CUDA 13.0
+• NCCL 2.28.7+
+• HPCX 2.25.1+
+• Oracle Cloud Agent 1.57.0
 
 ## Custom OS image Creation with Packer
 
@@ -55,8 +55,9 @@ To build your images using packer clone the OCI HPC Images repo and run the comm
 
 | OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
-| OCI GPU AI Image with Ubuntu Linux 22.04 | Ubuntu-22/Canonical-Ubuntu-22.04-aarch64-DOCA-OFED-3.2.1-580-OPEN-CUDA-13.0| [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/S2Qey_Y3D2rQJuHO1YKPvC5uglZIJBwFfshFqpT0UF327VX9MZzDnLrHKWqUQzzB/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-aarch64-2025.10.31-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.02.27-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13, OCA 1.56, HPC-X 2.25.1 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 24.04 |  Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-DOCA-OFED-3.2.1-580-OPEN-CUDA-13.0 | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/S2Qey_Y3D2rQJuHO1YKPvC5uglZIJBwFfshFqpT0UF327VX9MZzDnLrHKWqUQzzB/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2025.10.31-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.02.27-0) |  NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13, OCA 1.56, HPC-X 2.25.1 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-aarch64-64k-page-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-aarch64-64k-page-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-aarch64-2026.02.28-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.03.13-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-aarch64-64k-page-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-64k-page-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2026.02.28-0-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.03.13-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-aarch64-64k-page-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-64k-page-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2026.02.28-0-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.03.13-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, Kernel 6.17, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
 
 ## Hello World Verification
 

@@ -8,8 +8,8 @@ BM.GPU.H100.8 is a high-bandwidth NVIDIA H100 bare-metal shape intended for larg
 
 - Shape: `BM.GPU.H100.8`
 - GPU configuration: `8 x NVIDIA H100 80 GB`
-- Recommended OS baseline: `Oracle Linux 8+`, `Ubuntu Linux 20.04`, or `Ubuntu Linux 22.04`
-- Recommended software baseline: `NVIDIA Driver 104.12+, CUDA 12.2+, NCCL 2.19.3+`
+- Recommended OS baseline: `Oracle Linux 8 or 9`, `Ubuntu Linux 22.04`, or `Ubuntu Linux 24.04`
+- Recommended software baseline: `DOCA OFED 3.2.1, NVIDIA Driver 580/590 (Open), CUDA 13.0/13.1`
 - Primary verification command: `nvidia-smi`
 - Operational profile: `scale-out AI and HPC with NCCL topology considerations`
 
@@ -35,18 +35,18 @@ See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Com
 
 # Recommended Operating Systems
 
-- Oracle Linux 8+
-- Ubuntu Linux 20.04
+- Oracle Linux 8
+- Oracle Linux 9
 - Ubuntu Linux 22.04
+- Ubuntu Linux 24.04
 
 ## Recommended Software Version
 
-- OFED 5.8+
-- NVIDIA Driver 104.12+
-- CUDA 12.2+
-- NCCL 2.19.3+
-- HPC-X 2.16+
-- Oracle Cloud Agent 1.38.0+
+- DOCA OFED 3.2.1
+- NVIDIA Driver 580 or 590 (Open)
+- CUDA 13.0 or 13.1
+- Oracle Cloud Agent 1.57.0
+- Use the [Provided Images](#provided-images) table below for the current validated OCI image combinations
 
 ## Custom OS Image Creation with Packer
 
