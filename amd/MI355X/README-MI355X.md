@@ -7,6 +7,15 @@ MI355X shapes represent a specialized class of heterogeneous accelerated compute
 MI355X systems leverage AMD’s XGMI (Inter-GPU Express Global Memory Interconnect) for direct GPU-to-GPU connectivity within each node. On a typical MI355X system, all 8 GPUs are fully connected via XGMI, providing a single-hop, high-bandwidth, low-latency peer-to-peer path between any pair of GPUs. This topology is symmetrical, meaning all GPUs enjoy equal connectivity for workloads that depend on frequent collective or point-to-point 
 communication.
 
+## At a Glance
+
+- Shape family: `MI355X`
+- GPU configuration: `8 x AMD Instinct MI355X`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
+- Recommended software baseline: `ROCm 7.1+, RCCL 2.26.6, OFED 25.07-0.9.7`
+- Primary verification command: `amd-smi`
+- Operational profile: `single-node and scale-out AI/ML and HPC with XGMI topology`
+
 # Table of Contents
 
 * [Hardware Specifications](#hardware-specifications)
@@ -44,10 +53,6 @@ See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Com
 • Oracle Cloud Agent 1.54.0+\
 • HPCX 2.22+
 
-### Recommended FW (Managed by OCI)
-
-• BKC 25.15.04+ 
-
 ## Custom OS image Creation with Packer
 
 To build your images using packer clone the OCI HPC Images repo and run the commands found there [OCI HPC Images GitHub Repo](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/README.md).
@@ -58,12 +63,13 @@ It is recommended to use Oracle-provided or organizationally-approved images for
 
 | OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
-| OCI GPU AI Image with Oracle Linux 9.5  | `OracleLinux-9/Oracle-Linux-9.5-RHCK-DOCA-OFED-3.0.0-AMD-ROCM-700.pkr.hcl`| [PAR Link](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/134254210) | ROCM 7.0.2, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | NA
-| OCI GPU AI Image with Ubuntu Linux 24.04  | `Ubuntu-24/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-710.pkr.hcl`| [PAR Link](https://objectstorage.us-chicago-1.oraclecloud.com/p/Bv7qO-ALCgpnHE-0whrjmfMIENDz8DFRf30urxyVZ2hjSRQyTyqKwdXV316QxSWy/n/iduyx1qnmway/b/oci-hpc-images/o/Canonical-Ubuntu-24.04-2025.10.31-0-OCA-DOCA-OFED-3.1.0-AMD-ROCM-710-2025.12.05) | ROCM 7.1.0, RCCL 2.26.6, OFED: 28.40.1202, Oracle Cloud Agent 1.54.0+, HPCX 2.22+ | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.0.0-AMD-ROCM-710.pkr.hcl`| [PAR Link](https://objectstorage.us-chicago-1.oraclecloud.com/p/ADstfRticRqOIwBHKo9HoFOheSC9mzHTx2mdx_j8e-aB9tGdPAVGsm1jzVEfs27G/n/iduyx1qnmway/b/oci-hpc-images/o/Canonical-Ubuntu-22.04-2025.10.31-0-OCA-DOCA-OFED-3.1.0-AMD-ROCM-710-2025.12.05) |  ROCM 7.1, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-24.04-DOCA-OFED-3.0.0-AMD-ROCM-641.pkr.hcl`| [PAR Link](https://objectstorage.us-chicago-1.oraclecloud.com/p/HeINbvoAL3xKI_rvUyMdnW_j-CCqCsqsUZ76arKCkW-4iMeQRAt_Wq_5HDZlEBSs/n/iduyx1qnmway/b/oci-hpc-images/o/Canonical-Ubuntu-22.04-2025.10.31-0-DOCA-OFED-3.0.0-AMD-ROCM-641-2025.12.05) |  ROCM 6.4, OFED 24.10-1.1.4.0, OCA 1.52, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-24.04-DOCA-OFED-3.2.1-AMD-ROCM-643.pkr.hcl`| [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-AMD-ROCM-643-2026.03.13-0) |  ROCM 6.43, OFED 3.2.1, OCA 1.57.0, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 22.04  | `Ubuntu-22/Canonical-Ubuntu-24.04-DOCA-OFED-3.2.1-AMD-ROCM-72.pkr.hcl`| [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-AMD-ROCM-72-2026.03.13-0) |  ROCM 7.2, OFED 3.2.1, OCA 1.57.0, HPC-X 2.23 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
+| OCI GPU AI Image with Oracle Linux 9 | [`Oracle-Linux-9.6-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-643`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-9/Oracle-Linux-9.6-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-643.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-9.6-2025.11.20-0-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-643-2026.03.13-0) | ROCm 6.4.3, DOCA OFED 3.2.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Oracle Linux 9 | [`Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-72`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-9/Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-72.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-9.7-2026.02.28-0-RHCK-DOCA-OFED-3.2.1-AMD-ROCM-72-2026.03.13-0) | ROCm 7.2, DOCA OFED 3.2.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-AMD-ROCM-643`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-AMD-ROCM-643.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-AMD-ROCM-643-2026.03.13-0) | ROCm 6.4.3, DOCA OFED 3.2.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-AMD-ROCM-72`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-AMD-ROCM-72.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-AMD-ROCM-72-2026.03.13-0) | ROCm 7.2, DOCA OFED 3.2.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-AMD-ROCM-643`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-AMD-ROCM-643.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.8-DOCA-OFED-3.2.1-AMD-ROCM-643-2026.03.13-0) | ROCm 6.4.3, DOCA OFED 3.2.1, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-AMD-ROCM-72`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-AMD-ROCM-72.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.8-DOCA-OFED-3.2.1-AMD-ROCM-72-2026.03.13-0) | ROCm 7.2, DOCA OFED 3.2.1, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.14-DOCA-OFED-3.2.1-AMD-ROCM-72`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.14-DOCA-OFED-3.2.1-AMD-ROCM-72.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.14-DOCA-OFED-3.2.1-AMD-ROCM-72-2026.03.13-0) | ROCm 7.2, DOCA OFED 3.2.1, Kernel 6.14, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
 
 # Hello World Verification
 
@@ -410,8 +416,8 @@ This section has additional reference material which you may find useful.
 
 ## AMD Technical Documents
 
-1. [AMD ROCM Software Compatibility Matrix](https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html1)
-2. [AMD ROcm Software Examples](https://github.com/ROCm/rocm-examples)
+1. [AMD ROCm Software Compatibility Matrix](https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html)
+2. [AMD ROCm Software Examples](https://github.com/ROCm/rocm-examples)
 3. [AMD Kubernetes GPU Operator](https://github.com/ROCm/gpu-operator)
 
 ## OCI AMD 355X Blogs

@@ -12,6 +12,15 @@ Pollara nodes are a variant of the MI355X bare metal GPU shape family in OCI tha
 
 Within each node, all 8 MI355X GPUs are connected via AMD XGMI, enabling a symmetrical, single-hop, high-bandwidth GPU-to-GPU topology suitable for communication-heavy workloads (e.g., model parallelism, pipeline parallelism, large batch training, and dense collectives).
 
+## At a Glance
+
+- Shape family: `MI355X-Pollara`
+- GPU configuration: `8 x AMD Instinct MI355X with Pollara networking`
+- Recommended OS baseline: `Ubuntu Linux 22.04` or `Ubuntu Linux 24.04`
+- Recommended software baseline: `ROCm 7.0.2 or 7.2.0, RCCL 2.26.6, OpenMPI aligned with the approved OCI image`
+- Primary verification command: `docker pull rocm/pytorch:latest` plus GPU visibility checks
+- Operational profile: `scale-out AI and HPC over Ethernet with Pollara NICs`
+
 # Table of Contents
 
 * [Hardware Specifications](#hardware-specifications)
@@ -38,17 +47,16 @@ See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Com
 
 # Recommended Operating Systems
 
-• Ubuntu 22.04+\
-• Kernel: 5.15.0-1074-oracle + (Use OCI-provided images for the Pollara variant whenever possible to ensure the correct kernel, drivers, and firmware alignment.)\
-• AINIC FW: 1.117.5-a-56 (For 8 x Pensando Backend NICs) 
+• Ubuntu Linux 22.04\
+• Ubuntu Linux 24.04\
+• Use the OCI-provided Pollara image for the rack whenever possible to keep kernel, driver, and networking components aligned
 
 ## Recommended Software Version
 
-• ROCm: 7.2.0+\
+• ROCm: 7.0.2 or 7.2.0\
 • RCCL: 2.26.6\
 • Oracle Cloud Agent: 1.55.0+\
-• Networking stack note (Pollara)\
-• OFED: MLNX OFED 5.9 for 22.04 and 24.10 for 24.04 (For 2 x CX7 Frontend NICs)\
+• OFED: MLNX OFED 5.9 for Ubuntu 22.04 and 24.10 for Ubuntu 24.04 (for the 2 x CX7 front-end NICs)\
 • OpenMPI: 4.1.6, 5.0.8\
 • amd-anp (amd ainic network plugin designed to enhance performance for RCCL collective communications library)\
 • amd-argus
@@ -63,11 +71,10 @@ It is recommended to use Oracle-provided or organizationally-approved images for
 
 | OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
-| OCI GPU AI Image with Ubuntu Linux 22.04  | To be updated | Under construction — image link will be provided in a future update. | ROCM 7.0.2, RCCL 2.26.6, OFED 5.9, Oracle Cloud Agent 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
-| OCI GPU AI Image with Ubuntu Linux 24.04.4 LTS | To be updated | Under construction — image link will be provided in a future update. |  MLNX OFED LINUX-24.10-1.1.4.0, ROCm 7.0.2, Pollara NIC Firmware 1.117.5-a-56, OpenMPI 5.0.8, OCA: 1.57.0-2248 |  ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
-| OCI GPU AI Image with Ubuntu Linux 24.04.4 LTS | To be updated | Under construction — image link will be provided in a future update. | MLNX OFED LINUX-24.10-1.1.4.0, ROCm 7.2, Pollara NIC Firmware: 1.117.5-a-56, OpenMPI 5.0.8, OCA: 1.57.0-2248 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) | 
+| OCI GPU AI Image with Ubuntu Linux 22.04 | To be updated | [PAR Link](https://objectstorage.us-saltlake-2.oraclecloud.com/p/02QYYf_pFsZlBzMQi5-kp3jTYTJiX4RnkOfgpqTxlvwpO7pCie2bfYrRCr5KD_ll/n/hpctraininglab/b/Sudhir-test-bucket/o/Canonical-Ubuntu-22.04-Kernel-5.15-OFED-5.9-AMD-ROCM-702_POLLARA-OPENMPI-4.1.6) | ROCm 7.0.2, RCCL 2.26.6, OFED 5.9, OpenMPI 4.1.6 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | To be updated | [PAR Link](https://objectstorage.ap-kulai-1.oraclecloud.com/p/r7NmOiphWU9Pm9G7yBSkGIYRT5EXCjSNL2BYqso7R-s2zYBoTPmdwn3uyJ-pCvGb/n/hpctraininglab/b/Sudhir-Bucket/o/Canonical-Ubuntu-24.04-2026.02.28-0-MOFED-2410_1140-AMD-ROCM-72-2026.03.13-0) | ROCm 7.2.0, RCCL 2.26.6, OFED 24.10, OpenMPI 5.0.8 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
 
-***Note that ROCM 7.2 is experimental and not currently recommended for MI355x-Pollara**
+*Note: The current Ubuntu 24.04 Pollara image tracks the ROCm 7.2 image line. Validate your target workload against the approved rack image before standardizing on it for production.*
 
 # Hello World Verification
 
@@ -375,271 +382,43 @@ AMDSMI Tool: 24.6.2+2b02a07 | AMDSMI Library version: 24.6.2.0 | ROCm version: 7
 Here you can find suggested troubleshooting methods.
 
 * [Confirm Hardware & Drivers](#confirm-hardware--drivers)
-* [AINIC](#ainic-pesando)
 * [RDMA Link](#rdma-link)
 * [IB Write](#ib-write)
 
 ## Confirm Hardware & Drivers
-```sh
+Use the following commands to confirm that all eight GPUs are visible, the XGMI topology is healthy, and the host NUMA layout matches expectations:
+
+```bash
 amd-smi
-
-+------------------------------------------------------------------------------+
-| AMD-SMI 26.0.2+39589fda      amdgpu version: 6.16.13  ROCm version: 7.0.2    |
-| Platform: Linux Baremetal                                                    |
-|-------------------------------------+----------------------------------------|
-| BDF                        GPU-Name | Mem-Uti   Temp   UEC       Power-Usage |
-| GPU  HIP-ID  OAM-ID  Partition-Mode | GFX-Uti    Fan               Mem-Usage |
-|=====================================+========================================|
-| 0000:0d:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   0       1       7        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:26:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   1       3       5        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:5d:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   2       2       6        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:75:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   3       0       2        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:8e:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   4       5       0        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:a7:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   5       7       4        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:dc:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   6       6       1        SPX/NPS1 | N/A        N/A           283/294896 MB |
-|-------------------------------------+----------------------------------------|
-| 0000:f4:00.0    AMD Instinct MI355X | N/A        N/A   0          N/A/1400 W |
-|   7       4       3        SPX/NPS1 | N/A        N/A           283/294896 MB |
-+-------------------------------------+----------------------------------------+
-+------------------------------------------------------------------------------+
-| Processes:                                                                   |
-|  GPU        PID  Process Name          GTT_MEM  VRAM_MEM  MEM_USAGE     CU % |
-|==============================================================================|
-|  No running processes found                                                  |
-+------------------------------------------------------------------------------+
-```
-```sh
 amd-smi topology
-
-ACCESS TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:26:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:5d:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:75:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:8e:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:a7:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:dc:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:f4:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-WEIGHT TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 0            0            0            0            0            0            0            0
-0000:26:00.0 0            0            0            0            0            0            0            0
-0000:5d:00.0 0            0            0            0            0            0            0            0
-0000:75:00.0 0            0            0            0            0            0            0            0
-0000:8e:00.0 0            0            0            0            0            0            0            0
-0000:a7:00.0 0            0            0            0            0            0            0            0
-0000:dc:00.0 0            0            0            0            0            0            0            0
-0000:f4:00.0 0            0            0            0            0            0            0            0
-HOPS TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 0            1            1            1            1            1            1            1
-0000:26:00.0 1            0            1            1            1            1            1            1
-0000:5d:00.0 1            1            0            1            1            1            1            1
-0000:75:00.0 1            1            1            0            1            1            1            1
-0000:8e:00.0 1            1            1            1            0            1            1            1
-0000:a7:00.0 1            1            1            1            1            0            1            1
-0000:dc:00.0 1            1            1            1            1            1            0            1
-0000:f4:00.0 1            1            1            1            1            1            1            0
-LINK TYPE TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:26:00.0 XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:5d:00.0 XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:75:00.0 XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI
-0000:8e:00.0 XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI
-0000:a7:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI
-0000:dc:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI
-0000:f4:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF
-NUMA BW TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 N/A          0-0          0-0          0-0          0-0          0-0          0-0          0-0
-0000:26:00.0 0-0          N/A          0-0          0-0          0-0          0-0          0-0          0-0
-0000:5d:00.0 0-0          0-0          N/A          0-0          0-0          0-0          0-0          0-0
-0000:75:00.0 0-0          0-0          0-0          N/A          0-0          0-0          0-0          0-0
-0000:8e:00.0 0-0          0-0          0-0          0-0          N/A          0-0          0-0          0-0
-0000:a7:00.0 0-0          0-0          0-0          0-0          0-0          N/A          0-0          0-0
-0000:dc:00.0 0-0          0-0          0-0          0-0          0-0          0-0          N/A          0-0
-0000:f4:00.0 0-0          0-0          0-0          0-0          0-0          0-0          0-0          N/A
-CACHE COHERANCY TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 SELF         C            C            C            C            C            C            C
-0000:26:00.0 C            SELF         C            C            C            C            C            C
-0000:5d:00.0 C            C            SELF         C            C            C            C            C
-0000:75:00.0 C            C            C            SELF         C            C            C            C
-0000:8e:00.0 C            C            C            C            SELF         C            C            C
-0000:a7:00.0 C            C            C            C            C            SELF         C            C
-0000:dc:00.0 C            C            C            C            C            C            SELF         C
-0000:f4:00.0 C            C            C            C            C            C            C            SELF
-ATOMICS TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 SELF         64,32        64,32        64,32        64,32        64,32        64,32        64,32
-0000:26:00.0 64,32        SELF         64,32        64,32        64,32        64,32        64,32        64,32
-0000:5d:00.0 64,32        64,32        SELF         64,32        64,32        64,32        64,32        64,32
-0000:75:00.0 64,32        64,32        64,32        SELF         64,32        64,32        64,32        64,32
-0000:8e:00.0 64,32        64,32        64,32        64,32        SELF         64,32        64,32        64,32
-0000:a7:00.0 64,32        64,32        64,32        64,32        64,32        SELF         64,32        64,32
-0000:dc:00.0 64,32        64,32        64,32        64,32        64,32        64,32        SELF         64,32
-0000:f4:00.0 64,32        64,32        64,32        64,32        64,32        64,32        64,32        SELF
-DMA TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 SELF         T            T            T            T            T            T            T
-0000:26:00.0 T            SELF         T            T            T            T            T            T
-0000:5d:00.0 T            T            SELF         T            T            T            T            T
-0000:75:00.0 T            T            T            SELF         T            T            T            T
-0000:8e:00.0 T            T            T            T            SELF         T            T            T
-0000:a7:00.0 T            T            T            T            T            SELF         T            T
-0000:dc:00.0 T            T            T            T            T            T            SELF         T
-0000:f4:00.0 T            T            T            T            T            T            T            SELF
-BI-DIRECTIONAL TABLE:
-             0000:0d:00.0 0000:26:00.0 0000:5d:00.0 0000:75:00.0 0000:8e:00.0 0000:a7:00.0 0000:dc:00.0 0000:f4:00.0
-0000:0d:00.0 SELF         T            T            T            T            T            T            T
-0000:26:00.0 T            SELF         T            T            T            T            T            T
-0000:5d:00.0 T            T            SELF         T            T            T            T            T
-0000:75:00.0 T            T            T            SELF         T            T            T            T
-0000:8e:00.0 T            T            T            T            SELF         T            T            T
-0000:a7:00.0 T            T            T            T            T            SELF         T            T
-0000:dc:00.0 T            T            T            T            T            T            SELF         T
-0000:f4:00.0 T            T            T            T            T            T            T            SELF
-```
-
-```sh
-amd-smi firmware
-GPU: 0
-    FW_LIST:
-        FW 0:
-            FW_ID: CP_MEC1
-            FW_VERSION: 41
-        FW 1:
-            FW_ID: CP_MEC2
-            FW_VERSION: 41
-        FW 2:
-            FW_ID: RLC
-            FW_VERSION: 43
-        FW 3:
-            FW_ID: SDMA0
-            FW_VERSION: 12
-        FW 4:
-            FW_ID: SDMA1
-            FW_VERSION: 12
-        FW 5:
-            FW_ID: VCN
-            FW_VERSION: 09.10.90.31
-        FW 6:
-            FW_ID: RLC_RESTORE_LIST_GPM_MEM
-            FW_VERSION: 4
-        FW 7:
-            FW_ID: RLC_RESTORE_LIST_SRM_MEM
-            FW_VERSION: 4
-        FW 8:
-            FW_ID: RLC_RESTORE_LIST_CNTL
-            FW_VERSION: 4
-        FW 9:
-            FW_ID: PSP_SOSDRV
-            FW_VERSION: 00.45.00.29
-        FW 10:
-            FW_ID: TA_RAS
-            FW_VERSION: 1B.45.00.0A
-        FW 11:
-            FW_ID: TA_XGMI
-            FW_VERSION: 20.00.00.14
-        FW 12:
-            FW_ID: PM
-            FW_VERSION: 04.86.15.106
-        FW 13:
-            FW_ID: PLDM_BUNDLE
-            FW_VERSION: 01.25.17.07
-```
-
-```sh
 numactl --hardware
 ```
 
-```
-numactl --hardware
-available: 2 nodes (0-1)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
-node 0 size: 1547872 MB
-node 0 free: 1352749 MB
-node 1 cpus: 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
-node 1 size: 1548129 MB
-node 1 free: 1456225 MB
-node distances:
-node   0   1 
-  0:  10  32 
-  1:  32  10 
-```
-
-## AINIC (Pesando)
-
-```sh
-sudo nicctl show port
-
-NIC  : 42424650-4c32-3532-3430-353433000000 (0000:05:00.0)
-
-Port : 04908139-90d8-4242-4242-000011010000 (eth1/1)
-  Spec:
-    Ifindex                                  : 0x11010000
-    Type                                     : ETH
-    speed                                    : 400G
-    Admin state                              : UP
-    FEC type                                 : RS
-    Pause type                               : PFC
-    Number of lanes                          : 4
-    MTU                                      : 9000
-    TX pause                                 : enabled
-    RX pause                                 : enabled
-    Auto negotiation                         : enabled
--------------------------------------------------------------------------------------
-
-```
 ## RDMA Link
-To see the interfaces run the command “rdma link”. The front-end network is mlx5_0 (eth0). The RoCE RDMA interfaces are the ionic* interfaces. The state should show up as “ACTIVE” and the physical_state as “LINK_UP”. 
-```sh
-rdma_link
+To verify Pollara back-end RDMA interfaces and the CX7 front-end interfaces, run:
 
-link ionic_4/1 state ACTIVE physical_state LINK_UP netdev enp112s0 
-link ionic_0/1 state ACTIVE physical_state LINK_UP netdev enp8s0 
-link ionic_3/1 state ACTIVE physical_state LINK_UP netdev enp88s0 
-link ionic_2/1 state ACTIVE physical_state LINK_UP netdev enp33s0 
-link ionic_9/1 state ACTIVE physical_state LINK_UP netdev enp239s0 
-link ionic_5/1 state ACTIVE physical_state LINK_UP netdev enp137s0 
-link ionic_8/1 state ACTIVE physical_state LINK_UP netdev enp215s0 
-link ionic_7/1 state ACTIVE physical_state LINK_UP netdev enp162s0 
-link mlx5_0/1 state ACTIVE physical_state LINK_UP netdev ens9np0 
-link mlx5_1/1 state ACTIVE physical_state LINK_UP netdev ens49np1 
+```bash
+rdma link
 ```
+
+The front-end network should be visible on the `mlx5_*` interfaces and the Pollara back-end interfaces should appear as `ionic*`, with links reporting `ACTIVE` and `LINK_UP`.
 
 ## IB Write
-The following tests allows users to verify performance and to diagnose and troubleshoot network and RDMA related issues.
+Use `ib_write_bw` on one of the `ionic*` interfaces for point-to-point network validation.
 
-E.g Running ib writes against ionic_7
+Server side:
 
-Server Side:
-```numactl -N 0 -m 0 ib_write_bw -d ionic_7  -i 1  -q 4 -a --report_gbits --tx-depth 1024```
-Client Side:
-```numactl -N 0 -m 0 ib_write_bw -d ionic_7  -i 1  -q 4 -a --report_gbits --tx-depth 1024 <svr_ip>```
-
-Expected Performance:
 ```bash
----------------------------------------------------------------------------------------
- #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]   MsgRate[Mpps]
- 8388608    20000            391.34             391.34 		     0.005831
----------------------------------------------------------------------------------------
+numactl -N 0 -m 0 ib_write_bw -d ionic_7 -i 1 -q 4 -a --report_gbits --tx-depth 1024
 ```
+
+Client side:
+
+```bash
+numactl -N 0 -m 0 ib_write_bw -d ionic_7 -i 1 -q 4 -a --report_gbits --tx-depth 1024 <svr_ip>
+```
+
+Expected performance is approximately `391 Gb/s` on a healthy link.
 
 # Further Reading & Support
 
@@ -647,8 +426,8 @@ This section has additional reference material which you may find useful.
 
 ## AMD Technical Documents
 
-1. [AMD ROCM Software Compatibility Matrix](https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html1)
-2. [AMD ROcm Software Examples](https://github.com/ROCm/rocm-examples)
+1. [AMD ROCm Software Compatibility Matrix](https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html)
+2. [AMD ROCm Software Examples](https://github.com/ROCm/rocm-examples)
 3. [AMD Kubernetes GPU Operator](https://github.com/ROCm/gpu-operator)
 
 ## OCI AMD 355X Technical Docs & Supported Solutions
