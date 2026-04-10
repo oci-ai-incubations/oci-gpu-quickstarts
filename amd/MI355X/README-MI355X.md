@@ -16,9 +16,24 @@ communication.
 - Primary verification command: `amd-smi`
 - Operational profile: `single-node and scale-out AI/ML and HPC with XGMI topology`
 
+## When To Use This Shape
+
+Use this shape when you need a current-generation AMD GPU platform with strong single-node XGMI performance and an increasingly mature scale-out software path.
+
+It is best suited for teams validating ROCm-first workflows, large-memory AMD inference or training stacks, and environments that may need to compare standard MI355X against the Pollara variant.
+
+## First 15 Minutes
+
+1. Launch the shape with one of the approved images from the [Provided Images](#provided-images) table.
+2. Run `amd-smi` and confirm all eight MI355X GPUs are visible.
+3. Start the ROCm container smoke test from [Hello World Verification](#hello-world-verification).
+4. Run the first single-node RCCL check before moving on to model-serving or OKE-specific flows.
+
 # Table of Contents
 
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)

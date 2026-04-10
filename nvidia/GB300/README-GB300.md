@@ -17,8 +17,23 @@ Linux system level actions [need to be considered](#further-reading--support). 
 - Primary verification command: `nvidia-smi`
 - Operational profile: `multi-host NVLink with GMF/GMC topology awareness`
 
+## When To Use This Shape
+
+Use this shape when you need the GB-family operational model with newer rack-scale networking and multi-host NVLink behavior.
+
+It is best suited for customers running topology-sensitive, scale-out workloads where GMF and GMC placement, host grouping, and collective behavior across racks are central to performance validation.
+
+## First 15 Minutes
+
+1. Launch the shape with an approved image from the [Provided Images](#provided-images) table.
+2. Run the PyTorch container smoke test in [Hello World Verification](#hello-world-verification).
+3. Confirm fabric-aware expectations in [GB300 Specific Deployment and Management Notes](#gb300-specific-deployment-and-management-notes).
+4. Run the first single-node NCCL validation and then pick the matching OKE starter manifest if you are targeting Kubernetes.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)

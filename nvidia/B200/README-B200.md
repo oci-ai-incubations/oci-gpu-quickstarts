@@ -10,8 +10,23 @@ This document provides hardware specifications, supported OS images, onboarding 
 - Primary verification command: `nvidia-smi`
 - Operational profile: `single-node and multi-node AI training workloads`
 
+## When To Use This Shape
+
+Use this shape when you need dense single-node GPU capacity with a straightforward path into multi-node NVIDIA training workloads.
+
+It is best suited for customers who want large local GPU memory footprint, standard x86 operational patterns, and a validated image path before moving into larger Blackwell-scale deployments.
+
+## First 15 Minutes
+
+1. Launch the shape with one of the approved images from the [Provided Images](#provided-images) table.
+2. Run `nvidia-smi` and confirm that all eight B200 GPUs are visible.
+3. Run the CUDA container smoke test in [Hello World CUDA Container](#hello-world-cuda-container).
+4. Review the OKE starter links or move directly into the first NCCL validation step.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)

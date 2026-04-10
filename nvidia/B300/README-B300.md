@@ -13,8 +13,23 @@ BM.GPU.B300.8 is a high-density GPU bare-metal shape built around eight NVIDIA B
 - Primary verification command: `nvidia-smi`
 - Operational profile: `single-node and scale-out AI workloads`
 
+## When To Use This Shape
+
+Use this shape when you need top-end single-node NVIDIA performance with a current Blackwell software stack and a clear path to scale-out training.
+
+It is best suited for customers validating new-generation NVIDIA performance, building image baselines for B300, or moving from smoke tests into NCCL and model-training checks quickly.
+
+## First 15 Minutes
+
+1. Launch the shape with an approved image from the [Provided Images](#provided-images) table.
+2. Run `nvidia-smi` and confirm all eight B300 GPUs and the expected driver stack are visible.
+3. Follow the [Hello World Verification](#hello-world-verification) container smoke test.
+4. Run the first all-reduce benchmark and confirm the expected large-message bandwidth range before exploring the rest of the benchmark matrix.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)

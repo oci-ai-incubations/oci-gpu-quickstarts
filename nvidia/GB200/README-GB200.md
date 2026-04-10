@@ -10,8 +10,23 @@ This document provides hardware specifications, supported OS images, onboarding 
 - Primary verification flow: `PyTorch container check and GPU visibility validation`
 - Operational profile: `rack-scale NVLink with topology-sensitive multi-host scheduling`
 
+## When To Use This Shape
+
+Use this shape when you need rack-scale NVLink behavior, strong multi-host collective performance, and explicit control over placement within a GPU memory fabric.
+
+It is best suited for topology-aware training jobs where host placement, rack boundaries, and the fabric generation matter as much as the per-node GPU count.
+
+## First 15 Minutes
+
+1. Launch the shape with an approved image from the [Provided Images](#provided-images) table.
+2. Run the PyTorch container smoke test in [Hello World Verification](#hello-world-verification).
+3. Confirm the shape variant and fabric expectations using the [Hardware Specifications](#hardware-specifications) table and [GB200 Specific Deployment and Management Notes](#gb200-specific-deployment-and-management-notes).
+4. Pick the exact OKE or NCCL starter artifact that matches your variant before scaling out.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
