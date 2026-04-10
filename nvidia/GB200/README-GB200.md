@@ -26,11 +26,11 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 # Hardware Specifications
 
-| Shape Name        | GPU Model     | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total (GB) | CPU | # of CPUs | System Memory (GB) | Local Storage | Host NIC | RDMA (ROCe) NICs |
-|-------------------|---------------|-----------|------------|----------------- |---------------------------|-----------|---------------|----------------|----------|-----------|
-| BM.GPU.GB200.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
-| BM.GPU.GB200-v2.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
-| BM.GPU.GB200-v3.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
+| Shape Name | GPU Model | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total (GB) | CPU | # of CPUs | System Memory (GB) | Local Storage | Host NIC | Platform / Fabric Variant |
+|---|---|---|---|---|---|---|---|---|---|---|
+| BM.GPU.GB200.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | InfiniBand, 4 x 400 Gbps RDMA |
+| BM.GPU.GB200-v2.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | InfiniBand, 4 x 400 Gbps RDMA |
+| BM.GPU.GB200-v3.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | RoCEv2 L3, 8 x 400 Gbps RDMA |
 
 *See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 

@@ -9,7 +9,7 @@ BM.GPU.MI300X.8 is a scale-up and scale-out OCI GPU shape built around eight AMD
 - Shape: `BM.GPU.MI300X.8`
 - GPU configuration: `8 x AMD Instinct MI300X 192 GB`
 - Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
-- Recommended software baseline: `ROCm 6.10.5+, RCCL 2.21.5+, OFED 28.40.1202+`
+- Recommended software baseline: `ROCm 7.2+, RCCL 2.26.6, OFED 28.40.1202+`
 - Primary verification command: `amd-smi`
 - Operational profile: `single-node and multi-node AI/ML and HPC with XGMI topology`
 
@@ -42,8 +42,8 @@ See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Com
 
 ## Recommended Software Version
 
-- ROCm 6.10.5+
-- RCCL 2.21.5+
+- ROCm 7.2+
+- RCCL 2.26.6
 - OFED 28.40.1202+
 - Oracle Cloud Agent 1.52.0+
 - HPC-X 2.23+

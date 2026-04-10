@@ -107,6 +107,12 @@ The H100 source page in this workflow is oriented more toward system validation 
 
 Information on getting up and running on OKE can be found [here](https://github.com/oracle-quickstart/oci-hpc-oke).
 
+Useful H100-specific OKE starting points in `oci-hpc-oke`:
+
+- [H100 NCCL test manifest](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/nccl-tests/kueue/BM.GPU.H100.8.yaml)
+- [Running active health checks on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-active-health-checks.md)
+- [Running ib_write_bw on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-ib-write-bw-test.md)
+
 # Troubleshooting
 
 This guide includes a broad health-check set covering GPU visibility, NUMA topology, RDMA connectivity, DCGM diagnostics, PCIe bandwidth, and NVLink validation.
