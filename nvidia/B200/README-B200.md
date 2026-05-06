@@ -1,11 +1,32 @@
-# UNDER CONSTRUCTION
-**THIS DOCUMENT IS UNDER CONSTRUCTION**
-
 # OCI GPU Quick Start: NVIDIA B200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA B200 GPU shape.
 
+## At a Glance
+
+- Shape: `BM.GPU.B200.8`
+- GPU configuration: `8 x NVIDIA B200`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
+- Recommended software baseline: `DOCA 3.0.0+, NVIDIA Driver 570+ (Open), CUDA 12.9+, NCCL 2.25.1+`
+- Primary verification command: `nvidia-smi`
+- Operational profile: `single-node and multi-node AI training workloads`
+
+## When To Use This Shape
+
+Use this shape when you need dense single-node GPU capacity with a straightforward path into multi-node NVIDIA training workloads.
+
+It is best suited for customers who want large local GPU memory footprint, standard x86 operational patterns, and a validated image path before moving into larger Blackwell-scale deployments.
+
+## First 15 Minutes
+
+1. Launch the shape with one of the approved images from the [Provided Images](#provided-images) table.
+2. Run `nvidia-smi` and confirm that all eight B200 GPUs are visible.
+3. Run the CUDA container smoke test in [Hello World CUDA Container](#hello-world-cuda-container).
+4. Review the OKE starter links or move directly into the first NCCL validation step.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
@@ -27,18 +48,16 @@ This document provides hardware specifications, supported OS images, onboarding 
 *See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 
 # Recommended Operating Systems
-**Update/Verify This Section**
 • Oracle Linux 9+\
-• Ubuntu Linux 24.04+
+• Ubuntu Linux 22.04+
 
 ## Recommended Software Version
-**Update/Verify This Section**
-• DOCA OFED 3.1.0+\
-• NVIDIA Driver 580.x+\
-• CUDA 13+\
-• NCCL 2.28.7+\
-• HPCX 2.24.1+\
-• Oracle Cloud Agent 1.55.0+
+• DOCA 3.0.0+\
+• NVIDIA Driver 570+ (Open)\
+• CUDA 12.9+\
+• NCCL 2.25.1+\
+• HPCX 2.21+\
+• Oracle Cloud Agent 1.51.0+
 
 ## Custom OS image Creation with Packer
 
@@ -48,28 +67,30 @@ To build your images using packer clone the OCI HPC Images repo and run the comm
 
 It is recommended to use Oracle provided or organizationally-approved images for security and supportability. See OS Images Table for region-specific OCIDs and version info.
 
-| OS Version        | Image OCID (phx example)       | Download/Marketplace Link                                                                        |
-|-------------------|-------------------------------|--------------------------------------------------------------------------------------------------|
-**to be provided**
+| OS Version | Image Packer Build Details | OCI Platform Image Link | Driver Versions | Build & Dependency Status |
+|---|---|---|---|---|
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.05.05-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-2026.02.28-0-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1-2026.05.05-0) | NVIDIA OPEN 590, DOCA OFED 3.2.1, CUDA 13.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.05.05-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.8-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.8-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1-2026.05.05-0) | NVIDIA OPEN 590, DOCA OFED 3.2.1, CUDA 13.1, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-6.14-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-6.14-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-2026.02.28-0-6.14-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1-2026.05.05-0) | NVIDIA OPEN 590, DOCA OFED 3.2.1, CUDA 13.1, Kernel 6.14, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Oracle Linux 8 | [`Oracle-Linux-8.10-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-8/Oracle-Linux-8.10-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-8.10-2026.02.28-0-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.03.13-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Oracle Linux 8 | [`Oracle-Linux-8.10-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-8/Oracle-Linux-8.10-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-8.10-2026.02.28-0-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1-2026.03.13-0) | NVIDIA OPEN 590, DOCA OFED 3.2.1, CUDA 13.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Oracle Linux 9 | [`Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-9/Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-9.7-2026.02.28-0-RHCK-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.03.13-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Oracle Linux 9 | [`Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/OracleLinux-9/Oracle-Linux-9.7-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Oracle-Linux-9.7-2026.02.28-0-RHCK-DOCA-OFED-3.2.1-GPU-590-OPEN-CUDA-13.1-2026.03.13-0) | NVIDIA OPEN 590, DOCA OFED 3.2.1, CUDA 13.1, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
 
 # Hello World Verification
 
-**Confirm Hardware & Drivers**
+Run `nvidia-smi` to verify that all eight GPUs are visible and healthy:
 
 ```bash
 nvidia-smi
-
-+-----------------------------------------------------------------------------+
-| NVIDIA-SMI ...   Driver Version: 550.xx  CUDA Version: 12.4                 |
-| GPU  Name           Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-|  0  NVIDIA B200            On   | 00000000:01:00.0 Off |                    0 |
-+----------------------------------------
 ```
 
 ## Hello World CUDA Container
 
 ```bash
-docker run --rm --gpus all nvcr.io/nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
+docker run --rm --gpus all nvcr.io/nvidia/cuda:13.1.0-base-ubuntu24.04 nvidia-smi
 
 ```
 
@@ -126,7 +147,14 @@ mpirun --bind-to numa
 ```
 
 ## NCCL
-**Update Content**
+
+For guidance on installing and running additional NCCL benchmarks on this family, see the [NCCL user guide](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html).
+
+The source material for B200 includes both all-reduce and all-to-all coverage for single-node and multi-node deployments. When `nccl-tests` is installed, the baseline single-node all-reduce command is:
+
+```bash
+/opt/oci-hpc/nccl-tests/build/all_reduce_perf -b 512k -e 8G -f 2 -g 8
+```
 
 ## Model Inference Performance
 
@@ -230,6 +258,12 @@ resources:
 ```
 5. Verify with Hello World CUDA container pod.
 See detailed instructions in OKE Onboarding Guide .
+
+Useful B200-specific OKE starting points in `oci-hpc-oke`:
+
+- [B200 NCCL test manifest](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/nccl-tests/kueue/BM.GPU.B200.8.yaml)
+- [Running active health checks on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-active-health-checks.md)
+- [Running ib_write_bw on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-ib-write-bw-test.md)
 
 # Troubleshooting
 Here you can find suggested troubleshooting methods.

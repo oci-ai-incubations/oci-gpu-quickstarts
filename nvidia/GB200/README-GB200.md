@@ -1,8 +1,32 @@
 # OCI GPU Quick Start: NVIDIA GB200
 This document provides hardware specifications, supported OS images, onboarding verification, sample benchmarks, and best-practices for OCI deployments using the NVIDIA GB200 GPU shape.
 
+## At a Glance
+
+- Shape family: `BM.GPU.GB200.4`, `BM.GPU.GB200-v2.4`, `BM.GPU.GB200-v3.4`
+- GPU configuration: `4 x NVIDIA B200`
+- Recommended OS baseline: `Oracle Linux 9+` or `Ubuntu Linux 22.04+`
+- Recommended software baseline: `DOCA OFED 3.2.1, NVIDIA Driver 580.105+ (Open), CUDA 13.0, NCCL 2.28.7+`
+- Primary verification flow: `PyTorch container check and GPU visibility validation`
+- Operational profile: `rack-scale NVLink with topology-sensitive multi-host scheduling`
+
+## When To Use This Shape
+
+Use this shape when you need rack-scale NVLink behavior, strong multi-host collective performance, and explicit control over placement within a GPU memory fabric.
+
+It is best suited for topology-aware training jobs where host placement, rack boundaries, and the fabric generation matter as much as the per-node GPU count.
+
+## First 15 Minutes
+
+1. Launch the shape with an approved image from the [Provided Images](#provided-images) table.
+2. Run the PyTorch container smoke test in [Hello World Verification](#hello-world-verification).
+3. Confirm the shape variant and fabric expectations using the [Hardware Specifications](#hardware-specifications) table and [GB200 Specific Deployment and Management Notes](#gb200-specific-deployment-and-management-notes).
+4. Pick the exact OKE or NCCL starter artifact that matches your variant before scaling out.
+
 # Table of Contents
 * [Hardware Specifications](#hardware-specifications)
+* [When To Use This Shape](#when-to-use-this-shape)
+* [First 15 Minutes](#first-15-minutes)
 * [Recommended Operating Systems](#recommended-operating-systems)
     * [Recommended Software Version](#recommended-software-version)
     * [Custom OS Image Creation with Packer](#custom-os-image-creation-with-packer)
@@ -17,14 +41,11 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 # Hardware Specifications
 
-| Shape Name        | GPU Model     | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total (GB) | CPU | # of CPUs | System Memory (GB) | Local Storage | Host NIC | RDMA (ROCe) NICs |
-|-------------------|---------------|-----------|------------|----------------- |---------------------------|-----------|---------------|----------------|----------|-----------|
-| BM.GPU.GB200.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
-
-<!--  Verify Specs here
-| BM.GPU.GB200-v2.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
-| BM.GPU.GB200-v3.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | 4 x 400 Gbps |
--->
+| Shape Name | GPU Model | GPUs/Node | GPU Memory (GB/GPU) | GPU Memory Total (GB) | CPU | # of CPUs | System Memory (GB) | Local Storage | Host NIC | Platform / Fabric Variant |
+|---|---|---|---|---|---|---|---|---|---|---|
+| BM.GPU.GB200.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | InfiniBand, 4 x 400 Gbps RDMA |
+| BM.GPU.GB200-v2.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | InfiniBand, 4 x 400 Gbps RDMA |
+| BM.GPU.GB200-v3.4 | B200 | 4 | 192 | 768 | Arm Neoverse V2 (x2) | 72 (144) | 1740 | 4 x 7.68TB NVMe | 2 x 200 Gbps | RoCEv2 L3, 8 x 400 Gbps RDMA |
 
 *See the [OCI Compute Shapes Docs](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm) for up-to-date details.
 
@@ -34,12 +55,12 @@ This document provides hardware specifications, supported OS images, onboarding 
 
 ## Recommended Software Version
 
-• OFED 23.10+ 
-• NVIDIA Driver 570.x
-• CUDA 12.8
-• NCCL 2.27.3+
-• HPCX 2.22.1+
-• Oracle Cloud Agent 1.51.0 +
+• DOCA OFED 3.2.1
+• NVIDIA Driver 580.105+ (Open)
+• CUDA 13.0
+• NCCL 2.28.7+
+• HPCX 2.25.1+
+• Oracle Cloud Agent 1.57.0
 
 ## Custom OS image Creation with Packer
 
@@ -49,8 +70,9 @@ To build your images using packer clone the OCI HPC Images repo and run the comm
 
 | OS Version        | Image Packer Build Details       | OCI Platform Image Link                                                                        | Driver Versions | Build & Dependency Status | 
 |-------------------|-------------------------------|------------------------------------------------------------------------------------------------------------|--------------|--------------------------|
-| OCI GPU AI Image with Ubuntu Linux 22.04 | Ubuntu-22/Canonical-Ubuntu-22.04-aarch64-DOCA-OFED-3.2.1-580-OPEN-CUDA-13.0| [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/S2Qey_Y3D2rQJuHO1YKPvC5uglZIJBwFfshFqpT0UF327VX9MZzDnLrHKWqUQzzB/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-aarch64-2025.10.31-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.02.27-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13, OCA 1.56, HPC-X 2.25.1 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
-| OCI GPU AI Image with Ubuntu Linux 24.04 |  Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-DOCA-OFED-3.2.1-580-OPEN-CUDA-13.0 | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/S2Qey_Y3D2rQJuHO1YKPvC5uglZIJBwFfshFqpT0UF327VX9MZzDnLrHKWqUQzzB/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2025.10.31-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.02.27-0) |  NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13, OCA 1.56, HPC-X 2.25.1 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) 
+| OCI GPU AI Image with Ubuntu Linux 22.04 | [`Canonical-Ubuntu-22.04-aarch64-64k-page-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-22/Canonical-Ubuntu-22.04-aarch64-64k-page-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-22.04-aarch64-2026.02.28-0-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.05.05-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-aarch64-64k-page-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-64k-page-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2026.02.28-0-6.8-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.05.05-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, Kernel 6.8, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
+| OCI GPU AI Image with Ubuntu Linux 24.04 | [`Canonical-Ubuntu-24.04-aarch64-64k-page-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0`](https://github.com/oracle-quickstart/oci-hpc-images/blob/main/images/Ubuntu-24/Canonical-Ubuntu-24.04-aarch64-64k-page-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0.pkr.hcl) | [PAR Link](https://objectstorage.ca-montreal-1.oraclecloud.com/p/AIo4CP0P_DlUelDlsWgGPWmY6FcBQzJWmmFyGKdY0epkh87a9Q3ndvFYycjIxTQ9/n/idxzjcdglx2s/b/images/o/Canonical-Ubuntu-24.04-aarch64-2026.02.28-0-6.17-DOCA-OFED-3.2.1-GPU-580-OPEN-CUDA-13.0-2026.05.05-0) | NVIDIA OPEN 580, DOCA OFED 3.2.1, CUDA 13.0, Kernel 6.17, OCA 1.57.0 | ![Build](/media/icons/build-passing.svg) ![Build](/media/icons/dependencies.svg) |
 
 ## Hello World Verification
 
@@ -373,6 +395,14 @@ Results:
 
 # OKE GPU Getting Started
 Information on getting up and running on OKE can be found [here](https://github.com/oracle-quickstart/oci-hpc-oke).
+
+Useful GB200-specific OKE starting points in `oci-hpc-oke`:
+
+- [GB200 NCCL test manifest](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/nccl-tests/kueue/BM.GPU.GB200.4.yaml)
+- [GB200-v2 NCCL test manifest](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/nccl-tests/kueue/BM.GPU.GB200-v2.4.yaml)
+- [GB200-v3 NCCL test manifest](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/manifests/nccl-tests/kueue/BM.GPU.GB200-v3.4.yaml)
+- [Running active health checks on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-active-health-checks.md)
+- [Running ib_write_bw on OKE](https://github.com/oracle-quickstart/oci-hpc-oke/blob/main/docs/running-ib-write-bw-test.md)
 
 # Troubleshooting
 
